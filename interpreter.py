@@ -67,9 +67,11 @@ class VM:
             for label in labels:
                 data_labels[label] = data_start + label_idx * WORD_SIZE
 
-        def find_code_label(label, from_idx=0):
+        def find_code_label(label, from_idx=None):
             # for int labels such as 0f or 0b, find the nearest matching label
             if re.match(r'^\d+[fb]$', label):
+                if from_idx is None:
+                    raise ValueError("from_idx must be provided for relative label search")
                 target_name = label[:-1]
                 direction = label[-1]
                 if direction == 'f':  # forwards
@@ -87,11 +89,16 @@ class VM:
                         return idx
                 raise ValueError(f"Label {label} not found")
         
+        def label_locator_with(from_idx):
+            def locator(label):
+                return find_code_label(label, from_idx)
+            return locator
+        
         self.label_locator = find_code_label
 
         # Load code (separate memory)
         self.code = []
-        for (instr, args) in parse_result.code:
+        for i, (instr, args) in enumerate(parse_result.code):
             # For simplicity, we will just store a lambda for each instruction
             # In a real VM, you would convert instructions to binary opcodes
             # Each instruction would be a function that takes the VM as an argument
@@ -147,17 +154,17 @@ class VM:
             elif instr == "sltui":
                 self.code.append(make_binary_opi(args, lambda x, y: 1 if (x & MASK_32) < (y & MASK_32) else 0))
             elif instr == "beq":
-                self.code.append(make_branch_op(args, find_code_label, lambda x, y: x == y))
+                self.code.append(make_branch_op(args, label_locator_with(i), lambda x, y: x == y))
             elif instr == "bne":
-                self.code.append(make_branch_op(args, find_code_label, lambda x, y: x != y))
+                self.code.append(make_branch_op(args, label_locator_with(i), lambda x, y: x != y))
             elif instr == "blt":
-                self.code.append(make_branch_op(args, find_code_label, lambda x, y: to_signed_32(x) < to_signed_32(y)))
+                self.code.append(make_branch_op(args, label_locator_with(i), lambda x, y: to_signed_32(x) < to_signed_32(y)))
             elif instr == "bge":
-                self.code.append(make_branch_op(args, find_code_label, lambda x, y: to_signed_32(x) >= to_signed_32(y)))
+                self.code.append(make_branch_op(args, label_locator_with(i), lambda x, y: to_signed_32(x) >= to_signed_32(y)))
             elif instr == "bltu":
-                self.code.append(make_branch_op(args, find_code_label, lambda x, y: (x & MASK_32) < (y & MASK_32)))
+                self.code.append(make_branch_op(args, label_locator_with(i), lambda x, y: (x & MASK_32) < (y & MASK_32)))
             elif instr == "bgeu":
-                self.code.append(make_branch_op(args, find_code_label, lambda x, y: (x & MASK_32) >= (y & MASK_32)))
+                self.code.append(make_branch_op(args, label_locator_with(i), lambda x, y: (x & MASK_32) >= (y & MASK_32)))
             elif instr == "jalr":
                 self.code.append(make_jalr(args))
             elif instr == "jal":
@@ -295,7 +302,7 @@ def make_branch_op(args, find_label_func, condition_func):
     target = find_label_func(args[2])
     def branch_op_instr(vm):
         if condition_func(vm.registers.read(src_reg1), vm.registers.read(src_reg2)):
-            vm.program_counter = vm.labels[target]
+            vm.program_counter = target
         else:
             advance_pc(vm)
     return branch_op_instr
