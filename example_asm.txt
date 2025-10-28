@@ -28,6 +28,13 @@ my_funct:
   // return
   jalr zero, ra
 
+main:
+  addi a0, zero, 69
+  printc a0
+  
+  // return
+  jalr zero, ra
+
 // this is a data section
 .data
 

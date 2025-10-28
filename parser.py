@@ -30,7 +30,7 @@ class Parser:
             label_name = kword[:-1]
             label_list = self.data_labels if self.mode == "data" else self.code_labels
             label_idx = len(self.data if self.mode == "data" else self.code)
-            label_list.extend([[]] * (label_idx - len(label_list) + 1))  # extend to fit
+            label_list.extend([] for i in range(label_idx - len(label_list) + 1))  # extend to fit
             label_list[label_idx].append(label_name)  # add the label to this line
             return
 
@@ -63,34 +63,21 @@ class Parser:
         for mode in ("data", "code"):
             label_list = self.data_labels if mode == "data" else self.code_labels
             label_idx = len(self.data if mode == "data" else self.code)
-            label_list.extend([[]] * (label_idx - len(label_list)))
+            label_list.extend([] for i in range(label_idx - len(label_list)))
 
 
-if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) <= 1:
-        print("Please enter the name of the file to parse")
-        sys.exit(1)
-
-    filename = sys.argv[1]
-
-    with open(filename, "r") as file:
-        lines = file.readlines()
-
-    # remove comments and whitespaces
-    lines = [trim_line(line) for line in lines]
-    lines = [line for line in lines if len(line) > 0]
-
+def parse_lines(lines):
     parser = Parser()
     for line in lines:
         parser.parse_line(line)
     parser.pad_label_list()
+    return parser
 
-    def print_asm(asm, comment=None, comment_col=32):
-        asm_line = asm if comment is None else f"{asm.ljust(comment_col - 1)} // {comment}"
-        print(asm_line)
+def print_asm(asm, comment=None, comment_col=32):
+    asm_line = asm if comment is None else f"{asm.ljust(comment_col - 1)} // {comment}"
+    print(asm_line)
 
+def dump_asm(parser):
     print("Code:")
     print("============")
     for i in range(len(parser.code)):
@@ -98,7 +85,6 @@ if __name__ == "__main__":
             print_asm(f"{label}:", "jump target label")
 
         insn, args = parser.code[i]
-        # print_asm(f"    {insn:<8}{', '.join(i.ljust(8) for i in args)}")
         print_asm(f"    {insn:<8}{', '.join(args)}")
 
     print("\nData:")
@@ -109,6 +95,28 @@ if __name__ == "__main__":
 
         data_word = parser.data[i]
         print_asm(f"    {hex(data_word)}")
+
+def parse_file(filename):
+    with open(filename, "r") as file:
+        lines = file.readlines()
+
+    # remove comments and whitespaces
+    lines = [trim_line(line) for line in lines]
+    lines = [line for line in lines if len(line) > 0]
+
+    return parse_lines(lines)
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) <= 1:
+        print("Please enter the name of the file to parse")
+        sys.exit(1)
+
+    filename = sys.argv[1]
+
+    asm_parser = parse_file(filename)
+    dump_asm(asm_parser)
 
     # you parse lines either in code or data mode, as you iterate.
     # in code mode, you append to a list of Tuple(insn, label)
