@@ -28,7 +28,7 @@ my_funct:
   // return
   jalr zero, ra
 
-main:
+print_stuff:
   addi a0, zero, 67 // lol six seven
   addi a1, zero, 94
 
@@ -43,6 +43,32 @@ main:
   
   // return
   jalr zero, ra
+
+main:
+  addi sp, sp, -12 // push 12 bytes of stack space
+  sw 8(sp), ra // store the return address
+
+  // store these two variables on the stack
+  addi a0, zero, 0
+  sw 0(sp), a0
+  addi a1, zero, 3
+  sw 4(sp), a1
+
+0: // start loop
+  jal ra, print_stuff // call this function
+
+  // reload these two variables
+  lw a0, 0(sp)
+  lw a1, 4(sp)
+
+  addi a0, a0, 1 // increment a0
+  sw 0(sp), a0 // and store it just in case
+
+  blt a0, a1, 0b // backwards jump if a0 < a1
+
+  lw ra, 8(sp) // load the return address
+  jalr zero, ra // return
+
 
 // this is a data section
 .data
