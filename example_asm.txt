@@ -29,17 +29,15 @@ my_funct:
   jalr zero, ra
 
 print_stuff:
-  addi a0, zero, 67 // lol six seven
+  addi a0, zero, 67   // lol six seven
   addi a1, zero, 94
 
 0: // start loop
-  printc a0 // print the char
-  addi a0, a0, 1 // increment a0
+  printc a0           // print the char
+  addi a0, a0, 1      // increment a0
   
-  blt a0, a1, 0b // backwards jump if a0 < a1
-
+  blt a0, a1, 0b      // backwards jump if a0 < a1
   // otherwise, done
-
   
   // return
   jalr zero, ra
