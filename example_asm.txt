@@ -114,6 +114,10 @@ main:
   lb a3, 12(sp)
   printc a3 // print newline
 
+  la a0, my_string
+  jal ra, print_str
+  jal ra, print_str // print twice
+
   lw ra, 8(sp) // load the return address
   addi sp, sp, 16 // pop the 16 bytes of stack space
   jalr zero, ra // return
@@ -194,16 +198,33 @@ print_num_unsigned:
   addi      a1, a1, -1    // pop digit
   jal       zero, 0b      // go to loop start
 1: // loop end
-  lw      a0, 12(sp)      // preserve num
+  lw      a0, 12(sp)      // restore num
   addi    sp, sp, 16      // restore stack
   jalr zero, ra           // return
+
+
+// prints the C-string at *a0
+print_str:
+  addi    a2, a0, 0       // preserve a0
+0: // loop start
+  lbu     a1, 0(a0)       // read byte
+  beq     a1, zero, 1f    // break if zero (null termination)
+  printc  a1              // print char
+  addi    a0, a0, 1       // increment
+  jal     zero, 0b        // jump to loop start
+1: // loop end
+  addi    a0, a2, 0       // restore a0
+  jalr    zero, ra        // return
+
 
 // this is a data section
 .data
 
 // declare word[2] some_data { 0xA, 0xBBBB }
 some_data:
-  .word 0xA, 0xBBBB
+  .word 0xA, 0xDDCCBBBB
+
+  .zero 4
 
 // declare a C-string
 my_string:

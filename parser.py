@@ -105,6 +105,15 @@ class Parser:
 
             return
         
+        if kword == ".zero":
+            # add some zeroed bytes
+            if not self.mode == "data":
+                raise ValueError("Can only declare data in a .data section")
+            num_zeros = int(remaining_text.strip(), 0)
+            for _ in range(num_zeros):
+                self.data.append(0)
+            return
+        
         if kword == ".string":
             # add a string as byte data in C-string format
             if not self.mode == "data":
