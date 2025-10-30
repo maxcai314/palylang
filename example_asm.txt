@@ -72,7 +72,7 @@ main:
   printc a3 // print newline
 
   jal ra, print_num // print what's in a0
-  
+
   lb a3, 12(sp)
   printc a3 // print newline
 
@@ -204,3 +204,7 @@ print_num_unsigned:
 // declare word[2] some_data { 0xA, 0xBBBB }
 some_data:
   .word 0xA, 0xBBBB
+
+// declare a C-string
+my_string:
+  .string "we//sh\n" // lol

@@ -7,6 +7,8 @@ MASK_32 = 0xFFFFFFFF
 MASK_16 = 0xFFFF
 MASK_8 = 0xFF
 WORD_SIZE = 4  # 4 bytes for a 32-bit word
+HALF_SIZE = 2  # 2 bytes for a 16-bit half
+BYTE_SIZE = 1  # 1 byte
 
 def to_signed_32(n):
     n = n & MASK_32
@@ -105,13 +107,12 @@ class VM:
 
         data_labels = {}
         # Load data segment
-        for i, word in enumerate(parse_result.data):
-            self.store_word(data_start + i * WORD_SIZE, word)
+        for i, byte in enumerate(parse_result.data):
+            self.store_byte(data_start + i, byte)
         
         for label_idx, labels in enumerate(parse_result.data_labels):
             for label in labels:
-                data_labels[label] = data_start + label_idx * WORD_SIZE
-
+                data_labels[label] = data_start + label_idx
         def find_code_label(label, from_idx=None):
             # for int labels such as 0f or 0b, find the nearest matching label
             if re.match(r'^\d+$', label):
@@ -293,7 +294,7 @@ def advance_pc(vm):
 def make_printc(args):
     dest_reg = args[0]
     def printc_instr(vm):
-        vm.print_char(vm.registers.read(dest_reg))
+        vm.print_char(vm.registers.read(dest_reg) & MASK_8)
         advance_pc(vm)
     return printc_instr
 
