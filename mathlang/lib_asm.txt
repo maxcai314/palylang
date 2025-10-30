@@ -1,0 +1,146 @@
+// library functions used for the mathlang
+
+.text
+
+// prints the number stored in a0
+print_num:
+  addi    sp, sp, -16     // a 32-bit integer only uses 10 digits at most
+  sw      0(sp), zero     // zero-initialize the buffer
+  sw      4(sp), zero
+  sw      8(sp), zero
+  sw      12(sp), a0      // preserve num
+// split the number into digits
+  addi    a1, sp, 0       // a1 is the buffer pointer
+  addi    a3, zero, 10
+0: // loop start
+  beq     zero, a0, 1f    // break if a0 is zero
+  rem     a2, a0, a3      // a2 = a0 % 10
+  div     a0, a0, a3      // a0 = 10 / 10
+  sb      0(a1), a2
+  addi    a1, a1, 1       // push the digit
+  jal     zero, 0b        // go to start of loop
+1: // loop end
+// print the accumulated digits
+  lw      a0, 12(sp)      // restore num
+  bge     a0, zero, 1f    // skip if nonnegative
+  addi    a3, zero, 0x2D
+  printc  a3              // print '-'
+1: // skip minus sign
+  beq     sp, a1, 0f      // if no digits, don't trim trailing 0
+  addi    a1, a1, -1      // otherwise, trim trailing 0
+0: // skip trim
+0: // loop start
+  lb        a2, 0(a1)
+  bge       a2, zero, 2f  // if nonnegative, skip
+  sub       a2, zero, a2  // negate num
+2: // skip negation
+  addi      a2, a2, 0x30  // convert to ascii + '0'
+  printc    a2
+  beq       sp, a1, 1f    // break when no more chars
+  addi      a1, a1, -1    // pop digit
+  jal       zero, 0b      // go to loop start
+1: // loop end
+  lw      a0, 12(sp)      // preserve num
+  addi    sp, sp, 16      // restore stack
+  jalr zero, ra           // return
+
+
+// prints the unsigned number stored in a0
+print_num_unsigned:
+  addi    sp, sp, -16     // a 32-bit integer only uses 10 digits at most
+  sw      0(sp), zero     // zero-initialize the buffer
+  sw      4(sp), zero
+  sw      8(sp), zero
+  sw      12(sp), a0      // preserve num
+// split the number into digits
+  addi    a1, sp, 0       // a1 is the buffer pointer
+  addi    a3, zero, 10
+0: // loop start
+  beq     zero, a0, 1f    // break if a0 is zero
+  remu    a2, a0, a3      // a2 = a0 % 10
+  divu    a0, a0, a3      // a0 = 10 / 10
+  sb      0(a1), a2
+  addi    a1, a1, 1       // push the digit
+  jal     zero, 0b        // go to start of loop
+1: // loop end
+// print the accumulated digits
+  beq     sp, a1, 0f      // if no digits, don't trim trailing 0
+  addi    a1, a1, -1      // otherwise, trim trailing 0
+0: // skip trim
+0: // loop start
+  lb        a2, 0(a1)
+  bge       a2, zero, 2f  // if nonnegative, skip
+  sub       a2, zero, a2  // negate num
+2: // skip negation
+  addi      a2, a2, 0x30  // convert to ascii + '0'
+  printc    a2
+  beq       sp, a1, 1f    // break when no more chars
+  addi      a1, a1, -1    // pop digit
+  jal       zero, 0b      // go to loop start
+1: // loop end
+  lw      a0, 12(sp)      // restore num
+  addi    sp, sp, 16      // restore stack
+  jalr zero, ra           // return
+
+
+// prints the C-string at *a0
+print_str:
+  addi    a2, a0, 0       // preserve a0
+0: // loop start
+  lbu     a1, 0(a0)       // read byte
+  beq     a1, zero, 1f    // break if zero (null termination)
+  printc  a1              // print char
+  addi    a0, a0, 1       // increment
+  jal     zero, 0b        // jump to loop start
+1: // loop end
+  addi    a0, a2, 0       // restore a0
+  jalr    zero, ra        // return
+
+
+// caches and displays the values of the registers from the callee
+print_state:
+  addi    sp, sp, -20
+  sw      16(sp), ra
+
+  sw      0(sp), a0
+  sw      4(sp), a1
+  sw      8(sp), a2
+  sw      12(sp), a3
+
+  la      a0, a_prefix
+  jal     ra, print_str
+  lw      a0, 0(sp)
+  jal     ra, print_num
+
+  la      a0, b_prefix
+  jal     ra, print_str
+  lw      a0, 4(sp)
+  jal     ra, print_num
+
+  la      a0, c_prefix
+  jal     ra, print_str
+  lw      a0, 8(sp)
+  jal     ra, print_num
+
+  la      a0, c_ending
+  jal     ra, print_str
+
+  lw      a0, 0(sp)
+  lw      a1, 4(sp)
+  lw      a2, 8(sp)
+  lw      a3, 12(sp)
+
+  lw      ra, 16(sp)
+  addi    sp, sp, 20
+  jalr    zero, ra
+
+
+.data
+a_prefix:
+  .string   "Value in a: "
+b_prefix:
+  .string "\nValue in b: "
+c_prefix:
+  .string "\nValue in c: "
+c_ending:
+  .string "\n"
