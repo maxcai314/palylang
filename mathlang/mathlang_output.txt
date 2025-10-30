@@ -144,3 +144,47 @@ c_prefix:
   .string "\nValue in c: "
 c_ending:
   .string "\n"
+
+
+// BEGIN USER CODE
+.text
+main:
+  // prologue
+  addi sp, sp, -16
+  sw 12(sp), ra
+  // LeftExpr(a) = RightExpr(literal, [5])
+  addi a0, zero, 5
+
+  // LeftExpr(c) = RightExpr(variable, ['a'])
+  addi a2, a0, 0
+
+  // LeftExpr(a) = RightExpr(literal, [6])
+  addi a0, zero, 6
+
+  // LeftExpr(a) = RightExpr(variable, ['c'])
+  addi a0, a2, 0
+
+  // LeftExpr(b) = RightExpr(arithmetic, ['+', RightExpr(literal, [5]), RightExpr(literal, [5])])
+  addi a1, zero, 5
+  addi a3, zero, 5
+  add a1, a1, a3
+
+  // LeftExpr(c) = RightExpr(arithmetic, ['+', RightExpr(variable, ['b']), RightExpr(variable, ['a'])])
+  add a2, a1, a0
+
+  // LeftExpr(a) = RightExpr(arithmetic, ['+', RightExpr(variable, ['a']), RightExpr(literal, [5])])
+  addi a3, zero, 5
+  add a0, a0, a3
+
+  // LeftExpr(b) = RightExpr(arithmetic, ['-', RightExpr(variable, ['b']), RightExpr(literal, [77])])
+  addi a3, zero, 77
+  sub a1, a1, a3
+
+  // LeftExpr(c) = RightExpr(arithmetic, ['/', RightExpr(variable, ['c']), RightExpr(variable, ['a'])])
+  div a2, a2, a0
+
+  // epilogue
+  jal ra, print_state
+  lw ra, 12(sp)
+  addi sp, sp, 16
+  jalr zero, ra
