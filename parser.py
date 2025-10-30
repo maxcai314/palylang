@@ -73,9 +73,10 @@ def parse_lines(lines):
     parser.pad_label_list()
     return parser
 
-def print_asm(asm, comment=None, comment_col=32):
+def print_asm(asm, comment=None, line_num=None, comment_col=32, line_num_col=4):
     asm_line = asm if comment is None else f"{asm.ljust(comment_col - 1)} // {comment}"
-    print(asm_line)
+    header = " " * (line_num_col + 2) if line_num is None else f"{line_num:0{line_num_col}x}  " 
+    print(header + asm_line)
 
 def dump_asm(parser):
     print("Code:")
@@ -85,16 +86,17 @@ def dump_asm(parser):
             print_asm(f"{label}:", "jump target label")
 
         insn, args = parser.code[i]
-        print_asm(f"    {insn:<8}{', '.join(args)}")
+        print_asm(f"    {insn:<8}{', '.join(args)}", line_num=i)
 
     print("\nData:")
     print("============")
+    data_start_addr = 256
     for i in range(len(parser.data)):
         for label in parser.data_labels[i]:
             print_asm(f"{label}:", "data reference label")
 
         data_word = parser.data[i]
-        print_asm(f"    {hex(data_word)}")
+        print_asm(f"    {hex(data_word)}", line_num=data_start_addr + i * 4)
 
 def parse_file(filename):
     with open(filename, "r") as file:

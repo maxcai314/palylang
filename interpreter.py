@@ -4,12 +4,26 @@ import parser
 from parser import Parser
 
 MASK_32 = 0xFFFFFFFF
+MASK_16 = 0xFFFF
 MASK_8 = 0xFF
 WORD_SIZE = 4  # 4 bytes for a 32-bit word
 
 def to_signed_32(n):
     n = n & MASK_32
     return (n ^ 0x80000000) - 0x80000000
+
+def to_signed_16(n):
+    n = n & MASK_16
+    return (n ^ 0x8000) - 0x8000
+
+def to_signed_8(n):
+    n = n & MASK_8
+    return (n ^ 0x80) - 0x80
+
+def trunc_divmod(a, b):
+    q = int(a / b)
+    r = a - b * q
+    return (q, r)
 
 # The VM has only these general-purpose registers
 REGISTERS = [ "zero", "sp", "a0", "a1", "a2", "a3" ]
@@ -55,6 +69,37 @@ class VM:
         self.memory[address + 2] = (value >> 16) & MASK_8
         self.memory[address + 3] = (value >> 24) & MASK_8
     
+    def load_half(self, address):
+        if address % 2 != 0:
+            raise ValueError("Unaligned memory access")
+        half = (self.memory[address] |
+                (self.memory[address + 1] << 8))
+        return to_signed_16(half)
+    
+    def load_half_unsigned(self, address):
+        if address % 2 != 0:
+            raise ValueError("Unaligned memory access")
+        half = (self.memory[address] |
+                (self.memory[address + 1] << 8))
+        return half & MASK_16
+    
+    def store_half(self, address, value):
+        if address % 2 != 0:
+            raise ValueError("Unaligned memory access")
+        self.memory[address] = value & MASK_8
+        self.memory[address + 1] = (value >> 8) & MASK_8
+    
+    def load_byte(self, address):
+        byte = self.memory[address]
+        return to_signed_8(byte)
+    
+    def load_byte_unsigned(self, address):
+        byte = self.memory[address]
+        return byte & MASK_8
+    
+    def store_byte(self, address, value):
+        self.memory[address] = value & MASK_8
+
     def load_program(self, parse_result: Parser):
         data_start = 256  # data segment starts at address 256
 
@@ -69,6 +114,8 @@ class VM:
 
         def find_code_label(label, from_idx=None):
             # for int labels such as 0f or 0b, find the nearest matching label
+            if re.match(r'^\d+$', label):
+                raise ValueError("Numeric labels must specify direction with 'f' or 'b'")
             if re.match(r'^\d+[fb]$', label):
                 if from_idx is None:
                     raise ValueError("from_idx must be provided for relative label search")
@@ -108,9 +155,21 @@ class VM:
             elif instr == "printc":
                 self.code.append(make_printc(args))
             elif instr == "lw":
-                self.code.append(make_load(args))
+                self.code.append(make_load(args, VM.load_word))
             elif instr == "sw":
-                self.code.append(make_store(args))
+                self.code.append(make_store(args, VM.store_word))
+            elif instr == "lh":
+                self.code.append(make_load(args, VM.load_half))
+            elif instr == "lhu":
+                self.code.append(make_load(args, VM.load_half_unsigned))
+            elif instr == "sh":
+                self.code.append(make_store(args, VM.store_half))
+            elif instr == "lb":
+                self.code.append(make_load(args, VM.load_byte))
+            elif instr == "lbu":
+                self.code.append(make_load(args, VM.load_byte_unsigned))
+            elif instr == "sb":
+                self.code.append(make_store(args, VM.store_byte))
             elif instr == "la":
                 self.code.append(make_load_addr(args, data_labels))
             elif instr == "add":
@@ -118,9 +177,9 @@ class VM:
             elif instr == "addi":
                 self.code.append(make_binary_opi(args, lambda x, y: x + y))
             elif instr == "sub":
-                self.code.append(make_binary_op(args, lambda x, y: x - y))
+                self.code.append(make_binary_op(args, lambda x, y: to_signed_32(x) - to_signed_32(y)))
             elif instr == "subi":
-                self.code.append(make_binary_opi(args, lambda x, y: x - y))
+                self.code.append(make_binary_opi(args, lambda x, y: to_signed_32(x) - to_signed_32(y)))
             elif instr == "and":
                 self.code.append(make_binary_op(args, lambda x, y: x & y))
             elif instr == "andi":
@@ -130,7 +189,16 @@ class VM:
             elif instr == "ori":
                 self.code.append(make_binary_opi(args, lambda x, y: x | y))
             elif instr == "xor":
-                self.code.append(make_binary_op(args, lambda x, y: x ^ y))
+                if args == ["zero", "zero", "zero"]:
+                    def debug_insn(vm):
+                        print("\n--- DEBUG INSN HIT ---")
+                        vm.dump_state()
+                        print("----------------------\n")
+                        advance_pc(vm)
+                    # special case: xor zero, zero, zero is a debug insn
+                    self.code.append(debug_insn)
+                else:
+                    self.code.append(make_binary_op(args, lambda x, y: x ^ y))
             elif instr == "xori":
                 self.code.append(make_binary_opi(args, lambda x, y: x ^ y))
             elif instr == "sll":
@@ -168,7 +236,7 @@ class VM:
             elif instr == "jalr":
                 self.code.append(make_jalr(args))
             elif instr == "jal":
-                self.code.append(make_jal(args, find_code_label))
+                self.code.append(make_jal(args, label_locator_with(i)))
             elif instr == "mul":
                 self.code.append(make_binary_op(args, lambda x, y: to_signed_32(x) * to_signed_32(y)))
             elif instr == "mulh":
@@ -176,11 +244,11 @@ class VM:
             elif instr == "mulhu":
                 self.code.append(make_binary_op(args, lambda x, y: ((x & MASK_32) * (y & MASK_32)) >> 32))
             elif instr == "div":
-                self.code.append(make_binary_op(args, lambda x, y: to_signed_32(x) // to_signed_32(y) if y != 0 else 0xFFFFFFFF))
+                self.code.append(make_binary_op(args, lambda x, y: trunc_divmod(to_signed_32(x), to_signed_32(y))[0] if y != 0 else 0xFFFFFFFF))
             elif instr == "divu":
                 self.code.append(make_binary_op(args, lambda x, y: (x & MASK_32) // (y & MASK_32) if y != 0 else 0xFFFFFFFF))
             elif instr == "rem":
-                self.code.append(make_binary_op(args, lambda x, y: to_signed_32(x) % to_signed_32(y) if y != 0 else 0xFFFFFFFF))
+                self.code.append(make_binary_op(args, lambda x, y: trunc_divmod(to_signed_32(x), to_signed_32(y))[1] if y != 0 else 0xFFFFFFFF))
             elif instr == "remu":
                 self.code.append(make_binary_op(args, lambda x, y: (x & MASK_32) % (y & MASK_32) if y != 0 else 0xFFFFFFFF))
             else:
@@ -217,7 +285,7 @@ class VM:
         if self.program_counter == 0xFFFFFFFF:
             print("Program Counter: HALTED")
         else:
-            print(f"Program Counter: {self.program_counter}")
+            print(f"Program Counter: {hex(self.program_counter)} ({self.program_counter})")
 
 def advance_pc(vm):
     vm.program_counter += 1
@@ -229,7 +297,7 @@ def make_printc(args):
         advance_pc(vm)
     return printc_instr
 
-def make_load(args):
+def make_load(args, method_handle):
     # example: lw a1, 4(a3)
     dest_reg = args[0]
     pattern = r'(-?\d+)\((\w+)\)'
@@ -240,12 +308,12 @@ def make_load(args):
     base_reg = match.group(2)
     def load_instr(vm):
         addr = (vm.registers.read(base_reg) + offset) & MASK_32
-        val = vm.load_word(addr)
+        val = method_handle(vm, addr) & MASK_32
         vm.registers.write(dest_reg, val)
         advance_pc(vm)
     return load_instr
 
-def make_store(args):
+def make_store(args, method_handle):
     # example: sw 0(sp), a0
     pattern = r'(-?\d+)\((\w+)\)'
     match = re.match(pattern, args[0])
@@ -256,8 +324,8 @@ def make_store(args):
     src_reg = args[1]
     def store_instr(vm):
         addr = (vm.registers.read(base_reg) + offset) & MASK_32
-        val = vm.registers.read(src_reg)
-        vm.store_word(addr, val)
+        val = vm.registers.read(src_reg) & MASK_32
+        method_handle(vm, addr, val)
         advance_pc(vm)
     return store_instr
 
@@ -364,11 +432,21 @@ if __name__ == "__main__":
     debug_print("\nStarting VM execution...\n")
 
     debug_dump(vm)
+    pre_sp = vm.registers.read("sp")
 
-    while not vm.interpret_step():
-        debug_dump(vm)
-        # pass
-    
+    try:
+        while not vm.interpret_step():
+            debug_dump(vm)
+            # pass
+    except Exception as e:
+        print(f"\nError during execution: {e}")
+        vm.dump_state()
+        raise e
+
     debug_dump(vm)
 
     debug_print("Done! VM halted.")
+
+    post_sp = vm.registers.read("sp")
+    if pre_sp != post_sp:
+        print(f"\nWarning: Stack pointer changed from {hex(pre_sp)} to {hex(post_sp)}")

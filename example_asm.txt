@@ -4,7 +4,7 @@
 // my function
 my_funct:
   // set up stack space
-  addi    sp, sp, -12
+  addi    sp, sp, -16
 
   // Copy contents of *a3
   // into registers a0, a1, a2
@@ -23,7 +23,7 @@ my_funct:
   lw      a0, 4(a3)
 
   // restore stack pointer
-  addi    sp, sp, 12
+  addi    sp, sp, 16
 
   // return
   jalr zero, ra
@@ -43,7 +43,7 @@ print_stuff:
   jalr zero, ra
 
 main:
-  addi sp, sp, -12 // push 12 bytes of stack space
+  addi sp, sp, -16 // push 16 bytes of stack space
   sw 8(sp), ra // store the return address
 
   // store these two variables on the stack
@@ -63,10 +63,140 @@ main:
   sw 0(sp), a0 // and store it just in case
 
   blt a0, a1, 0b // backwards jump if a0 < a1
+// end loop
+
+  addi a3, zero, 0x0A // newline char
+  sb 12(sp), a3
+
+  lb a3, 12(sp)
+  printc a3 // print newline
+
+  jal ra, print_num // print what's in a0
+  
+  lb a3, 12(sp)
+  printc a3 // print newline
+
+  jal ra, print_num_unsigned // print what's in a0 (unsigned)
+
+  lb a3, 12(sp)
+  printc a3 // print newline
+
+  addi a0, zero, -169
+  jal ra, print_num // print what's in a0
+
+  lb a3, 12(sp)
+  printc a3 // print newline
+
+  jal ra, print_num_unsigned // print what's in a0 (unsigned)
+
+  lb a3, 12(sp)
+  printc a3 // print newline
+
+  addi a0, zero, 0xFFFFFFFF
+  jal ra, print_num // print what's in a0
+
+  lb a3, 12(sp)
+  printc a3 // print newline
+
+  jal ra, print_num_unsigned // print what's in a0 (unsigned)
+
+  lb a3, 12(sp)
+  printc a3 // print newline
+
+  addi a0, zero, 0x80000000
+  jal ra, print_num // print what's in a0
+
+  lb a3, 12(sp)
+  printc a3 // print newline
+
+  jal ra, print_num_unsigned // print what's in a0 (unsigned)
+
+  lb a3, 12(sp)
+  printc a3 // print newline
 
   lw ra, 8(sp) // load the return address
+  addi sp, sp, 16 // pop the 16 bytes of stack space
   jalr zero, ra // return
 
+// prints the number stored in a0
+print_num:
+  addi    sp, sp, -16     // a 32-bit integer only uses 10 digits at most
+  sw      0(sp), zero     // zero-initialize the buffer
+  sw      4(sp), zero
+  sw      8(sp), zero
+  sw      12(sp), a0      // preserve num
+// split the number into digits
+  addi    a1, sp, 0       // a1 is the buffer pointer
+  addi    a3, zero, 10
+0: // loop start
+  beq     zero, a0, 1f    // break if a0 is zero
+  rem     a2, a0, a3      // a2 = a0 % 10
+  div     a0, a0, a3      // a0 = 10 / 10
+  sb      0(a1), a2
+  addi    a1, a1, 1       // push the digit
+  jal     zero, 0b        // go to start of loop
+1: // loop end
+// print the accumulated digits
+  lw      a0, 12(sp)      // restore num
+  bge     a0, zero, 1f    // skip if nonnegative
+  addi    a3, zero, 0x2D
+  printc  a3              // print '-'
+1: // skip minus sign
+  beq     sp, a1, 0f      // if no digits, don't trim trailing 0
+  addi    a1, a1, -1      // otherwise, trim trailing 0
+0: // skip trim
+0: // loop start
+  lb        a2, 0(a1)
+  bge       a2, zero, 2f  // if nonnegative, skip
+  sub       a2, zero, a2  // negate num
+2: // skip negation
+  addi      a2, a2, 0x30  // convert to ascii + '0'
+  printc    a2
+  beq       sp, a1, 1f    // break when no more chars
+  addi      a1, a1, -1    // pop digit
+  jal       zero, 0b      // go to loop start
+1: // loop end
+  lw      a0, 12(sp)      // preserve num
+  addi    sp, sp, 16      // restore stack
+  jalr zero, ra           // return
+
+
+// prints the unsigned number stored in a0
+print_num_unsigned:
+  addi    sp, sp, -16     // a 32-bit integer only uses 10 digits at most
+  sw      0(sp), zero     // zero-initialize the buffer
+  sw      4(sp), zero
+  sw      8(sp), zero
+  sw      12(sp), a0      // preserve num
+// split the number into digits
+  addi    a1, sp, 0       // a1 is the buffer pointer
+  addi    a3, zero, 10
+0: // loop start
+  beq     zero, a0, 1f    // break if a0 is zero
+  remu    a2, a0, a3      // a2 = a0 % 10
+  divu    a0, a0, a3      // a0 = 10 / 10
+  sb      0(a1), a2
+  addi    a1, a1, 1       // push the digit
+  jal     zero, 0b        // go to start of loop
+1: // loop end
+// print the accumulated digits
+  beq     sp, a1, 0f      // if no digits, don't trim trailing 0
+  addi    a1, a1, -1      // otherwise, trim trailing 0
+0: // skip trim
+0: // loop start
+  lb        a2, 0(a1)
+  bge       a2, zero, 2f  // if nonnegative, skip
+  sub       a2, zero, a2  // negate num
+2: // skip negation
+  addi      a2, a2, 0x30  // convert to ascii + '0'
+  printc    a2
+  beq       sp, a1, 1f    // break when no more chars
+  addi      a1, a1, -1    // pop digit
+  jal       zero, 0b      // go to loop start
+1: // loop end
+  lw      a0, 12(sp)      // preserve num
+  addi    sp, sp, 16      // restore stack
+  jalr zero, ra           // return
 
 // this is a data section
 .data
