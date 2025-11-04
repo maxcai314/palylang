@@ -17,9 +17,23 @@ The two sides of an arithmetic operation can be a variable name or a literal
 a = 15 - a  # lol
 ```
 
+## Parsing
+The parser can be run via:
+```
+python3 mathlang/parser.py mathlang/example_code.txt
+```
+
+## Interpretation
+We have implemented a simple python interpreter which runs the program by operating 
+on an internal state dictionary. It can be run via:
+```
+python3 mathlang/interpreter.py mathlang/example_code.txt
+```
+
+## Compilation
 You can run the compiler via:
 ```
-python3 mathlang/mathlang_compiler.py mathlang/example_code.txt mathlang/mathlang_output.txt
+python3 mathlang/compiler.py mathlang/example_code.txt mathlang/mathlang_output.txt
 ```
 
 And then run the outputted program via:
