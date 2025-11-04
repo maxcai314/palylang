@@ -16,3 +16,6 @@ Strictly speaking, mathlang is equivalent in power to a deterministic finite aut
 but it is still a programming language nonetheless.
 Mathlang is intended as a basic introduction to lexing, parsing, and interpretation.
 The files for mathlang are available in the `mathlang` folder.
+
+Mathlang can be parsed and interpreted directly within python, or be compiled into our assembly language first
+and then run using our VM.
