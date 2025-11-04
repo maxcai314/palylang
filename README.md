@@ -5,3 +5,12 @@ fairly simple to lower the instructions into real assembly.
 
 The goal of this project is to compile programs into bytecodes for a lower-level
 virtual machine, which can be interpreted, or eventually lowered into actual machine code.
+
+This VM serves as a potential target platform for compilation as we explore programming language design.
+
+## mathlang
+
+Mathlang is a simple language with four arithmetic expressions over three integer registers.
+It does not support any control flow modifications and external memory, and is therefore not Turing-complete.
+Mathlang is intended as a basic introduction to lexing, parsing, and interpretation.
+The files for mathlang are available in the `mathlang` folder.
