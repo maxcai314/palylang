@@ -1,0 +1,14 @@
+# mathlang++ sample code
+
+# calculate y-intercept from two points
+x1 = 5
+y1 = 5
+x2 = 10
+y2 = 15
+
+# standard form: y = mx + b
+m = (y2 - y1) / (x2 - x1)
+b = y1 - m * x1
+
+y_intercept = b
+# should be -5
