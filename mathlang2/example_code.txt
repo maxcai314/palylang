@@ -1,0 +1,16 @@
+# mathlang 2.0 sample code
+
+my_var = 5  # yeah
+egg = my_var
+my_var = 6
+my_var = egg
+sus = 5 + 5
+egg = sus + my_var
+my_var = my_var + 5
+sus = sus - 77
+egg = egg / my_var
+
+# the results should be
+# my_var: 10
+# egg: 1
+# sus: -67

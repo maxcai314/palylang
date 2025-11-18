@@ -1,24 +1,11 @@
-# The parser for the mathlang language
+# The parser for the mathlang 2.0 language
+import re
 
-"""
-Here are the rules of my simple language:
-There are only three predefined variables: a, b, c
-A line of code may contain a statement and/or a comment
-There is only one type of statement: assignment
-<lhs> = <rhs>
-The left-hand side of assignment must be a variable name
-The right-hand side is an expression
-Expressions are either arithmetic operations, variable names, or literal numbers
-The two sides of an arithmetic operation can be a variable name or a literal
-+, -, *, /
-a = 15 - a  # lol
-"""
-
-VARIABLES = [ "a", "b", "c" ]
+VAR_NAME_PATTERN = r"^[a-zA-Z_]+$"
 
 class Code:
     def __init__(self):
-        self.variables = VARIABLES
+        self.variables = []
         self.lines = []  # list of (LeftExpr, RightExpr) tuples
 
 def trim_line(line):
@@ -37,12 +24,10 @@ class LeftExpr:
     Left-hand side expression - must be a variable name
     """
     def __init__(self, var_name):
-        if var_name not in VARIABLES:
-            raise ValueError(f"Invalid lhs variable name: {var_name}")
         self.var_name = var_name
 
     def validate(self):
-        if self.var_name not in VARIABLES:
+        if not re.match(VAR_NAME_PATTERN, self.var_name):
             raise ValueError(f"Invalid lhs variable name: {self.var_name}")
     
     def __repr__(self):
@@ -66,7 +51,7 @@ class RightExpr:
             if len(self.data) != 1 or not isinstance(self.data[0], int):
                 raise ValueError("Literal right expression must contain one integer value")
         elif self.type == "variable":
-            if len(self.data) != 1 or self.data[0] not in VARIABLES:
+            if len(self.data) != 1 or not re.match(VAR_NAME_PATTERN, self.data[0]):
                 raise ValueError("Variable right expression must contain one valid variable name")
         elif self.type == "arithmetic":
             if len(self.data) != 3:
@@ -103,12 +88,20 @@ class Parser:
         left_expr = LeftExpr(lhs)
         right_expr = self.parse_right_expr(rhs)
 
+        # push variable name to variable list if not already present !
+        if left_expr.var_name not in self.code.variables:
+            self.code.variables.append(left_expr.var_name)
+
         self.code.lines.append((left_expr, right_expr))
     
     def parse_primitive(self, token: str):
         # check if it's a variable
-        if token in self.code.variables:
-            return RightExpr("variable", [token])
+        if re.match(VAR_NAME_PATTERN, token):
+            # variable must already be defined !
+            if token in self.code.variables:
+                return RightExpr("variable", [token])
+            else:
+                raise ValueError(f"Variable used before definition: {token}")    
         
         # check if it's a literal number
         try:
@@ -170,6 +163,8 @@ if __name__ == "__main__":
     src_filename = sys.argv[1]
 
     asm_parser = parse_file(src_filename)
+
+    print("Declared variables:", asm_parser.code.variables)
 
     for i, (left, right) in enumerate(asm_parser.code.lines):
         print(f"{i}: \t{left} = {right}")

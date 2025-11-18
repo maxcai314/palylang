@@ -1,0 +1,5 @@
+# invalid code for mathlang 2.0
+
+my_num = 10               # valid
+my_num = my_num + my_num  # valid
+my_num = something_else   # invalid!
