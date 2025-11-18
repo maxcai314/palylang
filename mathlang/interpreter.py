@@ -1,16 +1,18 @@
 # the interpreter for the mathlang language
 
-from mathlang.parser import Parser, parse_file, VARIABLES
+from mathlang.parser import Parser, Code, parse_file
 
 class Interpreter:
     def __init__(self):
         self.variables = None
+        self.variable_list = None
     
-    def initialize_variables(self):
-        self.variables = {var: 0 for var in VARIABLES}
+    def initialize_variables(self, variables):
+        self.variables = {var: 0 for var in variables}
+        self.variable_list = list(variables)
 
-    def interpret_code(self, code: list):  # code is a list of (left, right) tuples
-        for left, right in code:
+    def interpret_code(self, code: Code):  # code is a list of (left, right) tuples
+        for left, right in code.lines:
             if right.type == "literal":
                 self.variables[left.var_name] = right.data[0]
             elif right.type == "variable":
@@ -36,7 +38,7 @@ class Interpreter:
             print("Variables not initialized.")
             return
         # print the results
-        for variable_name in VARIABLES:
+        for variable_name in self.variable_list:
             print(f"Value in {variable_name}: {self.variables[variable_name]}")
 
 
@@ -52,13 +54,13 @@ if __name__ == "__main__":
 
     asm_parser = parse_file(src_filename)
 
-    # for i, (left, right) in enumerate(asm_parser.code):
+    # for i, (left, right) in enumerate(asm_parser.code.lines):
     #     print(f"{i}: \t{left} = {right}")
     
     interpreter = Interpreter()
-    interpreter.initialize_variables()
+    interpreter.initialize_variables(asm_parser.code.variables)
 
-    print(f"Interpreting {len(asm_parser.code)} lines of code!\n")
+    print(f"Interpreting {len(asm_parser.code.lines)} lines of code!\n")
 
     interpreter.interpret_code(asm_parser.code)
     interpreter.print_state()

@@ -16,6 +16,11 @@ a = 15 - a  # lol
 
 VARIABLES = [ "a", "b", "c" ]
 
+class Code:
+    def __init__(self):
+        self.variables = VARIABLES
+        self.lines = []  # list of (LeftExpr, RightExpr) tuples
+
 def trim_line(line):
     # remove comments
     comment_start = line.find("#")
@@ -80,7 +85,7 @@ class RightExpr:
 # since each line of code is independent, we can lex and parse in one pass
 class Parser:
     def __init__(self):
-        self.code = []  # list of (left, right) tuples
+        self.code = Code()
     
     def parse_line(self, line: str):
         line = trim_line(line)
@@ -98,11 +103,11 @@ class Parser:
         left_expr = LeftExpr(lhs)
         right_expr = self.parse_right_expr(rhs)
 
-        self.code.append((left_expr, right_expr))
+        self.code.lines.append((left_expr, right_expr))
     
     def parse_primitive(self, token: str):
         # check if it's a variable
-        if token in VARIABLES:
+        if token in self.code.variables:
             return RightExpr("variable", [token])
         
         # check if it's a literal number
@@ -135,7 +140,7 @@ class Parser:
             raise ValueError(f"Invalid right-hand side expression: {expr}")
     
     def validate(self):
-        for left, right in self.code:
+        for left, right in self.code.lines:
             if not isinstance(left, LeftExpr) or not isinstance(right, RightExpr):
                 raise ValueError("Code line does not contain valid LeftExpr and RightExpr")
             left.validate()

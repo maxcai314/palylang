@@ -1,6 +1,6 @@
 # the compiler for the mathlang language
 
-from mathlang.parser import Parser, parse_file, LeftExpr, RightExpr
+from mathlang.parser import Parser, Code, parse_file, LeftExpr, RightExpr
 
 
 LIB_FILE = "mathlang/lib_asm.txt"
@@ -92,7 +92,7 @@ class Compiler:
         output.append("  addi sp, sp, -16")  # allocate stack space
         output.append("  sw 12(sp), ra")      # save return address
 
-        for left, right in self.parser.code:
+        for left, right in self.parser.code.lines:
             asm_lines = self.compile_statement(left, right)
             output.extend(asm_lines)
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
     asm_parser = parse_file(src_filename)
 
-    for i, (left, right) in enumerate(asm_parser.code):
+    for i, (left, right) in enumerate(asm_parser.code.lines):
         print(f"{i}: \t{left} = {right}")
     
     compiler = Compiler(asm_parser)
