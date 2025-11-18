@@ -240,5 +240,7 @@ if __name__ == "__main__":
             print()
         else:
             print(token.data(), end=" ")
-    print(f"\nParsed {len(tokens)} tokens.")
+    print(f"\Lexed {len(tokens)} tokens.")
+    # print("Tokens:")
+    # print(tokens)
 
