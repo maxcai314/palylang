@@ -1,7 +1,7 @@
 # The parser for the mathlang 2.0 language
 import re
 
-VAR_NAME_PATTERN = r"^[a-zA-Z_]+$"
+VAR_NAME_PATTERN = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
 
 class Code:
     def __init__(self):
