@@ -173,6 +173,7 @@ class Lexer:
         if self.current_lexeme is None:
             self.add_initial_char(char)
         else:
+            # greedy algorithm:
             # attempt to continue current lexeme
             if isinstance(self.current_lexeme, VariableToken):
                 if re.match(VAR_NAME_REMAINDER_CHAR_PATTERN, char):
