@@ -186,6 +186,10 @@ class Lexer:
                 if re.match(LITERAL_REMAINDER_CHAR_PATTERN, char):
                     self.current_lexeme.str_value += char
                 else:
+                    # if the only char was + or -, then it's actually an operator
+                    if self.current_lexeme.str_value in { "+", "-" }:
+                        # switch to operator instead
+                        self.current_lexeme = OperatorToken(self.current_lexeme.str_value)
                     # finalize current lexeme and start new one
                     self.finalize()
                     self.add_initial_char(char)
@@ -240,7 +244,53 @@ if __name__ == "__main__":
             print()
         else:
             print(token.data(), end=" ")
-    print(f"\Lexed {len(tokens)} tokens.")
+    print(f"Lexed {len(tokens)} tokens.")
+
+    # ANSI color codes for terminal output
+    BLACK = "\033[0;30m"
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    BROWN = "\033[0;33m"
+    BLUE = "\033[0;34m"
+    PURPLE = "\033[0;35m"
+    CYAN = "\033[0;36m"
+    LIGHT_GRAY = "\033[0;37m"
+    DARK_GRAY = "\033[1;30m"
+    LIGHT_RED = "\033[1;31m"
+    LIGHT_GREEN = "\033[1;32m"
+    YELLOW = "\033[1;33m"
+    LIGHT_BLUE = "\033[1;34m"
+    LIGHT_PURPLE = "\033[1;35m"
+    LIGHT_CYAN = "\033[1;36m"
+    END = "\033[0m"
+
+    print()
+    print(f"{BLUE}Variable{END} {GREEN}Literal{END} {RED}Operator{END} {YELLOW}Assignment{END} {PURPLE}Newline{END} {CYAN}Parentheses{END}")
+    print("Colored Tokens:\n")
+
+    # print colored tokens
+    for token in tokens:
+        text = token.data()
+        if isinstance(token, VariableToken):
+            color = BLUE
+        elif isinstance(token, LiteralToken):
+            color = GREEN
+        elif isinstance(token, OperatorToken):
+            color = RED
+        elif isinstance(token, AssignmentToken):
+            color = YELLOW
+        elif isinstance(token, NewlineToken):
+            color = PURPLE
+            text = "\\n"
+        elif isinstance(token, OpenParenToken) or isinstance(token, CloseParenToken):
+            color = CYAN
+        else:
+            color = END
+        print(f"{color}{text}{END}", end=" ")
+        if isinstance(token, NewlineToken):
+            print()
+    print()
+
     # print("Tokens:")
     # print(tokens)
 
