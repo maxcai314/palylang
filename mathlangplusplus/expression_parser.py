@@ -1,4 +1,4 @@
-# The parser for the mathlang++ language
+# The expression parser for the mathlang++ language
 
 from mathlangplusplus.lexer import *
 
