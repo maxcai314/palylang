@@ -64,17 +64,6 @@ class UnresolvedNode:
         return format_unresolved(self, indent=0, indent_string="  ")
 
 
-class ResolvedNode:
-    def __init__(self, left, right, operation):
-        """Resolved Node with a left value, right value, and operation"""
-        self.left = left
-        self.right = right
-        self.operation = operation
-
-    def __repr__(self):
-        return f"{self.left} {self.operation} {self.right}"
-
-
 def format_unresolved(node, indent=0, indent_string="|   ") -> str:
     result = ""
     terminator = ",\n" if indent > 0 else ";"
@@ -86,6 +75,18 @@ def format_unresolved(node, indent=0, indent_string="|   ") -> str:
     else:
         result += indent_string * indent + repr(node) + terminator
     return result
+
+
+class ResolvedNode:
+    def __init__(self, left, right, operation):
+        """Resolved Node with a left value, right value, and operation"""
+        self.left = left
+        self.right = right
+        self.operation = operation
+
+    def __repr__(self):
+        return f"{self.left} {self.operation} {self.right}"
+
 
 # Creates a graph from an UnresolvedNode
 def create_graph(node: UnresolvedNode, graph: dict):
