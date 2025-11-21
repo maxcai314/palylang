@@ -147,8 +147,9 @@ def substitute_addition_subtraction(tokens: list) -> list:
     # similar to multiplication/division, but for + and - operators
 
 if __name__ == "__main__":
+    print()
     # example expression: ((a+b)*c-d/3)*f+g
-    example_expression = "((a+b)*c-d/3)*f+g"
+    example_expression = "a * b * c * d / e * f / g"
     print("Example expression:", example_expression)
     lexer = Lexer()
     for char in example_expression:
@@ -162,3 +163,5 @@ if __name__ == "__main__":
     print("\nBinding multiplication/division:")
     unresolved.rewrite_depth_first(substitute_multiplication_division)
     print(format_tree(unresolved))
+
+    print()
