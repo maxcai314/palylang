@@ -32,6 +32,24 @@ class UnresolvedNode:
         else:
             raise ValueError(f"Cannot unwrap UnresolvedNode with multiple tokens/nodes: length {len(self.tokens)}")
     
+    def rewrite_depth_first(self, rewrite_function):
+        """
+        Apply a rewrite function to this UnresolvedNode and its children in depth-first order.
+        The rewrite_function should take a list of tokens/nodes and return a new list of tokens/nodes,
+        emulating a transformation for each token string in the expression tree.
+        This modifies the tree in place.
+        """
+        # First, recursively apply the rewrite function to all child UnresolvedNodes
+        new_tokens = []
+        for token in self.tokens:
+            if isinstance(token, UnresolvedNode):
+                token.rewrite_depth_first(rewrite_function)
+                new_tokens.append(token)
+            else:
+                new_tokens.append(token)
+        # Finally, apply the rewrite function to this node
+        self.tokens = list(rewrite_function(new_tokens))
+    
     @classmethod
     def parse_parentheses_inner(cls, token_source: iter, opened: bool = False):
         """Helper function to parse tokens with parentheses into nested UnresolvedNodes"""
@@ -61,63 +79,72 @@ class UnresolvedNode:
         return cls.parse_parentheses_inner(iter(tokens), opened=False)
     
     def __repr__(self):
-        return format_unresolved(self, indent=0, indent_string="  ")
+        return format_tree(self, indent=0, indent_string="", separator=" ")
+
+class BinOpNode:
+    def __init__(self, operation: OperatorToken, left, right):
+        """Resolved Node with an operation, left value, and right value"""
+        self.operation = operation
+        self.left = left
+        self.right = right
+
+    def __repr__(self):
+        return f"BinOpNode({self.operation}, {self.left}, {self.right})"
 
 
-def format_unresolved(node, indent=0, indent_string="|   ") -> str:
+def format_tree(node, indent=0, indent_string="|   ", separator="\n") -> str:
     result = ""
-    terminator = ",\n" if indent > 0 else ";"
+    terminator = "," + separator if indent > 0 else ";"
     if isinstance(node, UnresolvedNode):
-        result += indent_string * indent + "UnresolvedNode {\n"
+        result += indent_string * indent + "UnresolvedNode {" + separator
         for child in node.tokens:
-            result += format_unresolved(child, indent + 1, indent_string)
+            result += format_tree(child, indent + 1, indent_string, separator)
+        result += indent_string * indent + "}" + terminator
+    elif isinstance(node, BinOpNode):
+        result += indent_string * indent + "BinOpNode {" + separator
+        result += format_tree(node.operation, indent + 1, indent_string, separator)
+        result += format_tree(node.left, indent + 1, indent_string, separator)
+        result += format_tree(node.right, indent + 1, indent_string, separator)
         result += indent_string * indent + "}" + terminator
     else:
         result += indent_string * indent + repr(node) + terminator
     return result
 
 
-class ResolvedNode:
-    def __init__(self, left, right, operation):
-        """Resolved Node with a left value, right value, and operation"""
-        self.left = left
-        self.right = right
-        self.operation = operation
+def substitute_multiplication_division(tokens: list) -> list:
+    # this could be converted into an iterator/generator for future optimization
+    result = []
+    # state machine
+    previous_token = None
+    operator = None
+    for token in tokens:
+        if previous_token is None:
+            previous_token = token
+        elif operator is None:
+            if isinstance(token, OperatorToken) and token.operator in ('*', '/'):
+                operator = token
+            else:
+                # just pass through
+                result.append(previous_token)
+                previous_token = token
+        else:
+            # we have an operator and a previous token
+            # prev, operator, and token form a multiplication/division operation
+            bin_op_node = BinOpNode(operator, previous_token, token)
+            previous_token = bin_op_node
+            operator = None
+    # if after done, we have a dangling operator, it's an error
+    if operator is not None:
+        raise ValueError(f"Dangling operator without right operand: {operator}")
+    # flush remaining token
+    if previous_token is not None:
+        result.append(previous_token)
+    return result
 
-    def __repr__(self):
-        return f"{self.left} {self.operation} {self.right}"
 
-
-# Creates a graph from an UnresolvedNode
-def create_graph(node: UnresolvedNode, graph: dict):
-    if isinstance(node, UnresolvedNode) and node not in graph:
-        print("Found unresolved node")
-        graph[node] = []
-        for child in node.tokens:
-            if isinstance(child, UnresolvedNode):
-                print("Found Child - appending")
-                graph[node].append(child)
-                create_graph(child, graph)
-    return graph
-
-# Depth-first search on UnresolvedNodes
-def dfs_recursive(graph, start_node, visited=None):
-    if visited is None:
-        visited = set()
-
-    visited.add(start_node)
-    # TODO: this is where we will substitute it
-    print(f"Visiting UnresolvedNode with {len(start_node.tokens)} children")
-
-    for neighbor in graph.get(start_node, []):
-        if neighbor not in visited:
-            dfs_recursive(graph, neighbor, visited)
-
-def substitute_multiplication_division(tokens):
-    return
-
-def substitute_addition_subtraction(tokens):
-    return
+def substitute_addition_subtraction(tokens: list) -> list:
+    raise NotImplementedError("Addition and subtraction substitution not yet implemented")
+    # similar to multiplication/division, but for + and - operators
 
 if __name__ == "__main__":
     # example expression: ((a+b)*c-d/3)*f+g
@@ -129,10 +156,9 @@ if __name__ == "__main__":
     tokens = lexer.get_completed_tokens()
     unresolved = UnresolvedNode.parse_parentheses(tokens)
 
-    graph = create_graph(unresolved, {})
-    dfs_recursive(graph, unresolved)
+    print("Unresolved Tree:")
+    print(format_tree(unresolved))
 
-    # format the tree nicely
-
-    #print("Formatted Unresolved Tree:")
-    #print(format_unresolved(unresolved))
+    print("\nBinding multiplication/division:")
+    unresolved.rewrite_depth_first(substitute_multiplication_division)
+    print(format_tree(unresolved))
