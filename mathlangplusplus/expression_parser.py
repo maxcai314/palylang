@@ -207,7 +207,35 @@ def substitute_multiplication_division(tokens: list) -> list:
 
 
 def substitute_addition_subtraction(tokens: list) -> list:
-    raise NotImplementedError("Addition and subtraction substitution not yet implemented")
+    # this could be converted into an iterator/generator for future optimization
+    result = []
+    # state machine
+    previous_token = None
+    operator = None
+    for token in tokens:
+        if previous_token is None:
+            previous_token = token
+        elif operator is None:
+            if isinstance(token, OperatorToken) and token.operator in ('+', '-'):
+                operator = token
+            else:
+                # just pass through
+                result.append(previous_token)
+                previous_token = token
+        else:
+            # we have an operator and a previous token
+            # prev, operator, and token form a multiplication/division operation
+            bin_op_node = BinOpNode(operator, previous_token, token)
+            previous_token = bin_op_node
+            operator = None
+    # if after done, we have a dangling operator, it's an error
+    if operator is not None:
+        raise ValueError(f"Dangling operator without right operand: {operator}")
+    # flush remaining token
+    if previous_token is not None:
+        result.append(previous_token)
+    return result
+    # raise NotImplementedError("Addition and subtraction substitution not yet implemented")
     # similar to multiplication/division, but for + and - operators
 
 if __name__ == "__main__":
@@ -226,10 +254,10 @@ if __name__ == "__main__":
 
     print("\nBinding multiplication/division:")
     unresolved.rewrite_depth_first(substitute_multiplication_division)
-    print(format_tree(unresolved))
 
-    # print("\nBinding addition/subtraction:")
-    # todo
+    print("\nBinding addition/subtraction:")
+    unresolved.rewrite_depth_first(substitute_addition_subtraction)
+    print(format_tree(unresolved))
 
     print(f"\nExpression ready to unwrap: {unresolved.can_unwrap()}")
     unwrapped = unresolved.unwrap()
