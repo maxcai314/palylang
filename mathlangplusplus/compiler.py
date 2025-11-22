@@ -29,7 +29,7 @@ class Compiler:
             elif isinstance(node, BinOpNode):
                 left = compile_node(node.left, depth=depth+1)
                 right = compile_node(node.right, depth=depth+1)
-                # if at top level, assign directly to lhs
+                # if at top level, directly return expression
                 if depth == 0:
                     return f"{left} {node.operation.data()} {right}"
                 else:
