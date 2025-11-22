@@ -28,7 +28,7 @@ class Compiler:
         # we need to assign temp variables for intermediate results
         output = []
         temp_var_count = 0
-        def compile_node(node):
+        def compile_node(node, depth=0):
             nonlocal temp_var_count
             if isinstance(node, LiteralToken):
                 return str(node.numeric_value())
@@ -37,12 +37,16 @@ class Compiler:
                     raise ValueError(f"Variable {node.data()} used before definition")
                 return node.data()
             elif isinstance(node, BinOpNode):
-                left = compile_node(node.left)
-                right = compile_node(node.right)
-                temp_var_count += 1
-                temp_var = f"__temp_{temp_var_count}"
-                output.append(f"{temp_var} = {left} {node.operation.data()} {right}")
-                return temp_var
+                left = compile_node(node.left, depth=depth+1)
+                right = compile_node(node.right, depth=depth+1)
+                # if at top level, assign directly to lhs
+                if depth == 0:
+                    return f"{left} {node.operation.data()} {right}"
+                else:
+                    temp_var_count += 1
+                    temp_var = f"__temp_{temp_var_count}"
+                    output.append(f"{temp_var} = {left} {node.operation.data()} {right}")
+                    return temp_var
             else:
                 raise ValueError("Unknown node type")
         

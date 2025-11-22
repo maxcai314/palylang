@@ -28,10 +28,17 @@ Compiles mathlang++ into mathlang2.0
 ```
 python3 mathlangplusplus/compiler.py mathlangplusplus/example_code.txt mathlangplusplus/compiled_output.txt
 ```
+For fun, try double compiling:
+```
+python3 mathlangplusplus/compiler.py mathlangplusplus/compiled_output.txt mathlangplusplus/double_compiled_output.txt
+```
 
 Run the output via:
 ```
 python3 mathlang2/interpreter.py mathlangplusplus/compiled_output.txt
+```
+```
+python3 mathlang2/interpreter.py mathlangplusplus/double_compiled_output.txt
 ```
 
 All code should be run from the root folder of this project.
