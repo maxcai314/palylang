@@ -10,8 +10,8 @@ class Compiler:
     def compile(self):
         output = []
         for lhs, rhs in self.code.lines:
-            self.defined_variables.append(lhs.data())
             output.extend(self.compile_line(lhs, rhs))
+            self.defined_variables.append(lhs.data())
         return output
     
     def compile_line(self, lhs: VariableToken, rhs) -> list:
