@@ -2,6 +2,8 @@ from mathlangplusplus.lexer import *
 from mathlangplusplus.expression_parser import *
 from mathlangplusplus.parser import Code, parse_file
 
+# Compiles mathlang++ into lower-level mathlang2 instructions
+
 class Compiler:
     def __init__(self, code: Code):
         self.code = code
