@@ -1,6 +1,7 @@
 # The expression parser for the mathlang++ language
 
 from mathlangplusplus.lexer import *
+from abc import ABC, abstractmethod
 
 # A expression contains a list of tokens which does not contain equals or newlines
 class TokenExpression:
@@ -15,8 +16,22 @@ class TokenExpression:
     def __repr__(self):
         return f"Expression({self.tokens})"
 
+class Node(ABC):
+    @abstractmethod
+    def rewrite_depth_first(self, rewrite_function):
+        """
+        Apply a rewrite function to all UnresolvedNodes in this expression tree in depth-first order.
+        The rewrite_function should take a list of tokens/nodes and return a new list of tokens/nodes,
+        emulating a transformation for each token string in the expression tree.
+        This modifies the tree in place.
+        """
+        pass
+    @abstractmethod
+    def __repr__(self):
+        pass
+
 # Parse a TokenExpression into a abstract syntax tree
-class UnresolvedNode:
+class UnresolvedNode(Node):
     def __init__(self, tokens: list):
         """Not quite a standalone AST node yet; a string of nodes or tokens to be further parsed"""
         self.tokens = tokens
@@ -33,16 +48,10 @@ class UnresolvedNode:
             raise ValueError(f"Cannot unwrap UnresolvedNode with multiple tokens/nodes: length {len(self.tokens)}")
     
     def rewrite_depth_first(self, rewrite_function):
-        """
-        Apply a rewrite function to this UnresolvedNode and its children in depth-first order.
-        The rewrite_function should take a list of tokens/nodes and return a new list of tokens/nodes,
-        emulating a transformation for each token string in the expression tree.
-        This modifies the tree in place.
-        """
         # First, recursively apply the rewrite function to all child UnresolvedNodes
         new_tokens = []
         for token in self.tokens:
-            if isinstance(token, UnresolvedNode):
+            if isinstance(token, Node):
                 token.rewrite_depth_first(rewrite_function)
                 new_tokens.append(token)
             else:
@@ -81,12 +90,20 @@ class UnresolvedNode:
     def __repr__(self):
         return format_tree(self, indent=0, indent_string="", separator=" ")
 
-class BinOpNode:
+class BinOpNode(Node):
     def __init__(self, operation: OperatorToken, left, right):
         """Resolved Node with an operation, left value, and right value"""
         self.operation = operation
         self.left = left
         self.right = right
+    
+    def rewrite_depth_first(self, rewrite_function):
+        # Recursively apply the rewrite function to left and right
+        if isinstance(self.left, Node):
+            self.left.rewrite_depth_first(rewrite_function)
+        
+        if isinstance(self.right, Node):
+            self.right.rewrite_depth_first(rewrite_function)
 
     def __repr__(self):
         return f"BinOpNode({self.operation}, {self.left}, {self.right})"
@@ -149,7 +166,7 @@ def substitute_addition_subtraction(tokens: list) -> list:
 if __name__ == "__main__":
     print()
     # example expression: ((a+b)*c-d/3)*f+g
-    example_expression = "a * b * c * d / e * f / g"
+    example_expression = "( ( a + b ) * c - d / 3 ) * f + g"
     print("Example expression:", example_expression)
     lexer = Lexer()
     for char in example_expression:
