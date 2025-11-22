@@ -39,6 +39,9 @@ class Interpreter:
             return
         # print the results
         for variable_name in self.variable_list:
+            # don't print variables starting with two underscores
+            if variable_name.startswith("__"):
+                continue
             print(f"Value in {variable_name}: {self.variables[variable_name]}")
 
 
