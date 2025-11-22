@@ -36,7 +36,27 @@ class Parser:
 
     def parse_code(self, code_tokens: list):
         start = 0
-        for i in range(len(list)):
+        for i in range(len(code_tokens)):
             if isinstance(code_tokens[i], NewlineToken):
                 self.parse_line(code_tokens[start:i])
                 start = i+1
+
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) != 2:
+        print("Please enter the name of the source file")
+        print(f"Usage: python3 {sys.argv[0]} <source_file>")
+        sys.exit(1)
+    
+    src_filename = sys.argv[1]
+    tokens = lex_file(src_filename)
+    print(f"Lexed {len(tokens)} tokens.")
+
+    print("\nParsing code...")
+    parser = Parser()
+    parser.parse_code(tokens)
+    print(f"Parsed {len(parser.code.lines)} lines of code.")
+    for lhs, rhs in parser.code.lines:
+        print(f"{lhs.data()} = {format_tree(rhs)}")
