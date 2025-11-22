@@ -27,6 +27,13 @@ class Node(ABC):
         """
         pass
     @abstractmethod
+    def can_unwrap(self) -> bool:
+        """
+        Check if this tree can be unwrapped (i.e., contains no unresolved token strings).
+        Returns True if it can be unwrapped, False otherwise.
+        """
+        pass
+    @abstractmethod
     def unwrap(self):
         """
         Recursively unwrap all UnresolvedNodes that contain a single token or node,
@@ -47,6 +54,16 @@ class UnresolvedNode(Node):
     def is_singular(self) -> bool:
         """Check if this UnresolvedNode contains a single token or node"""
         return len(self.tokens) == 1
+    
+    def can_unwrap(self) -> bool:
+        """Check if this UnresolvedNode can be unwrapped (i.e., contains a single token or node)"""
+        if not self.is_singular():
+            return False
+        result = self.tokens[0]
+        if isinstance(result, Node):
+            return result.can_unwrap()
+        else:
+            return True
     
     def unwrap(self):
         """If this UnresolvedNode contains a single token or node, return it; else raise an error"""
@@ -108,6 +125,16 @@ class BinOpNode(Node):
         self.operation = operation
         self.left = left
         self.right = right
+    
+    def can_unwrap(self) -> bool:
+        # need to check left and right
+        left_unwrappable = True
+        right_unwrappable = True
+        if isinstance(self.left, Node):
+            left_unwrappable = self.left.can_unwrap()
+        if isinstance(self.right, Node):
+            right_unwrappable = self.right.can_unwrap()
+        return left_unwrappable and right_unwrappable
     
     def unwrap(self):
         # need to unwrap left and right
@@ -186,7 +213,7 @@ def substitute_addition_subtraction(tokens: list) -> list:
 if __name__ == "__main__":
     print()
     # example expression: ((a+b)*c-d/3)*f+g
-    example_expression = "a * b / c"
+    example_expression = "a + b / c"
     print("Example expression:", example_expression)
     lexer = Lexer()
     for char in example_expression:
@@ -199,6 +226,14 @@ if __name__ == "__main__":
 
     print("\nBinding multiplication/division:")
     unresolved.rewrite_depth_first(substitute_multiplication_division)
-    print(format_tree(unresolved.unwrap()))
+    print(format_tree(unresolved))
+
+    # print("\nBinding addition/subtraction:")
+    # todo
+
+    print(f"\nExpression ready to unwrap: {unresolved.can_unwrap()}")
+    unwrapped = unresolved.unwrap()
+    print("Unwrapped Tree:")
+    print(format_tree(unwrapped))
 
     print()
