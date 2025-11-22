@@ -141,14 +141,19 @@ class Lexer:
                 self.current_lexeme = None
             return
             # ignore characters in comment
+        
+        prev_lexeme = self.tokens[-1] if self.tokens else None
+        another_literal_unlikely = isinstance(prev_lexeme, (LiteralToken, VariableToken, CloseParenToken))
         # determine type of lexeme
         if re.match(VAR_NAME_START_CHAR_PATTERN, char):
             self.current_lexeme = VariableToken(char)
-        elif re.match(LITERAL_START_CHAR_PATTERN, char):
+        elif re.match(LITERAL_START_CHAR_PATTERN, char) and not another_literal_unlikely:
             self.current_lexeme = LiteralToken(char)
         elif char in ARITHMETIC_OPERATORS:
             self.tokens.append(OperatorToken(char))
             self.current_lexeme = None  # no lexeme in progress
+        elif re.match(LITERAL_START_CHAR_PATTERN, char):  # try again to parse literal
+            self.current_lexeme = LiteralToken(char)
         elif char == ASSIGNMENT_CHAR:
             self.tokens.append(AssignmentToken())
             self.current_lexeme = None  # no lexeme in progress

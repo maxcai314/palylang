@@ -12,3 +12,7 @@ b = y1 - m * x1
 
 y_intercept = b
 # should be -5
+
+#lol = 6*4/12+72/8-9  # 2
+#thirty = 20 - -10
+#minus_ten = -10
