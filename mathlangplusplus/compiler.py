@@ -15,17 +15,7 @@ class Compiler:
         return output
     
     def compile_line(self, lhs: VariableToken, rhs) -> list:
-        # if rhs is a LiteralToken, just assign directly
-        if isinstance(rhs, LiteralToken):
-            return [f"{lhs.data()} = {rhs.numeric_value()}"]
-        # if rhs is a VariableToken, check if defined, then assign
-        elif isinstance(rhs, VariableToken):
-            if rhs.data() not in self.defined_variables:
-                raise ValueError(f"Variable {rhs.data()} used before definition")
-            return [f"{lhs.data()} = {rhs.data()}"]
-        # otherwise, RHS must be a BinOpNode, which we need to recursively compile
-        # example: (a + b) * c
-        # we need to assign temp variables for intermediate results
+        # allocate temp variables for intermediate results
         output = []
         temp_var_count = 0
         def compile_node(node, depth=0):
