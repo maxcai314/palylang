@@ -1,0 +1,12 @@
+x1 = 5
+y1 = 5
+x2 = 10
+y2 = 15
+__temp_1 = y2 - y1
+__temp_2 = x2 - x1
+__temp_3 = __temp_1 / __temp_2
+m = __temp_3
+__temp_1 = m * x1
+__temp_2 = y1 - __temp_1
+b = __temp_2
+y_intercept = b

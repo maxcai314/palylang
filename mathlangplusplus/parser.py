@@ -3,8 +3,7 @@ from mathlangplusplus.lexer import *
 
 class Code:
     def __init__(self):
-        self.variables = []
-        self.lines = []  # list of (LeftExpr, RightExpr) tuples
+        self.lines = []  # list of (VariableToken, Node/Token) tuples
 
 # parser
 class Parser:
@@ -41,6 +40,11 @@ class Parser:
                 self.parse_line(code_tokens[start:i])
                 start = i+1
 
+def parse_file(src_filename: str) -> Code:
+    tokens = lex_file(src_filename)
+    parser = Parser()
+    parser.parse_code(tokens)
+    return parser.code
 
 if __name__ == "__main__":
     import sys
@@ -51,12 +55,8 @@ if __name__ == "__main__":
         sys.exit(1)
     
     src_filename = sys.argv[1]
-    tokens = lex_file(src_filename)
-    print(f"Lexed {len(tokens)} tokens.")
+    code = parse_file(src_filename)
+    print(f"Parsed {len(code.lines)} lines of code.")
 
-    print("\nParsing code...")
-    parser = Parser()
-    parser.parse_code(tokens)
-    print(f"Parsed {len(parser.code.lines)} lines of code.")
-    for lhs, rhs in parser.code.lines:
+    for lhs, rhs in code.lines:
         print(f"{lhs.data()} = {format_tree(rhs)}")
