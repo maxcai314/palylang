@@ -17,27 +17,27 @@ def escape_label(s: str) -> str:
 
 
 def node_label(node, parser):
-    # Terminal nodes: show token name and text
+    # Terminal nodes: token name and text
     if isinstance(node, TerminalNodeImpl):
         text = node.getText()
         sym = node.getSymbol()
-        if sym is not None:
-            t = sym.type
-            name = None
-            if t >= 0 and t < len(parser.symbolicNames):
-                name = parser.symbolicNames[t]
-            if not name or name == '<INVALID>':
-                # fallback to literal name
-                if t >= 0 and t < len(parser.literalNames):
-                    name = parser.literalNames[t]
-            if name:
-                return f"{escape_label(name)}\\n{escape_label(text)}"
+        # if sym is not None:
+        #     t = sym.type
+        #     name = None
+        #     if t >= 0 and t < len(parser.symbolicNames):
+        #         name = parser.symbolicNames[t]
+        #     if not name or name == '<INVALID>':
+        #         # fallback to literal name
+        #         if t >= 0 and t < len(parser.literalNames):
+        #             name = parser.literalNames[t]
+        #     if name:
+        #         return f"{escape_label(name)}\\n{escape_label(text)}"
         return escape_label(text)
     # Parser rule nodes: show rule name
     try:
         ri = node.getRuleIndex()
         if ri is not None and ri >= 0:
-            return escape_label(parser.ruleNames[ri])
+            return escape_label(f"{parser.ruleNames[ri]}")
     except Exception:
         pass
     return escape_label(str(type(node)))
