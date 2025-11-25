@@ -1,0 +1,64 @@
+// palylang code
+// java-like, except all types are passed by value
+// a type can be prepended with @ to indicate it is a pointer
+
+// all struct/union types must be declared globally
+// references are taken using @, and dereferenced using $
+// since these operators don't overlap with any other operators,
+// it should be easy to parse using ANTLR.
+
+// builtin types int, long, short, void, char (1 byte)
+// arrays can be declared locally, but are not actual types
+// they're treated implicitly as an extra layer of indirection
+
+void println(@char line) {
+    while ($line != 0) {
+        putchar(line);
+        line++;
+    }
+    putchar('\n');
+}
+
+// commented out code
+/*
+void print_hello_world() {
+    @char hello = "hello";
+    @char world = "world";
+    @char[2] words = { hello, world };
+
+    for (int i=0; i<2; i++) {
+        println(words[0]);
+    }
+}
+
+struct IntNode {
+    int data;
+    @IntNode next;
+}
+
+int linkedLength(@IntNode n) {
+    return linkedLength0(n, 0);
+}
+
+int linkedLength0(@IntNode n, int i) {
+    if (n.next == null) {
+        return i;
+    } else {
+        return linkedLength0(n.next, i+1);
+    }
+}
+
+struct IntNode {
+    int data;
+    @IntNode next;
+}
+
+int linkedLength(@IntNode n) {
+    int result = 0;
+    while (n.next != null) {
+        result++;
+        n = n.next;
+    }
+    return result;
+}
+*/
