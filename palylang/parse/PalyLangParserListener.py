@@ -143,24 +143,6 @@ class PalyLangParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by PalyLangParser#elementValue.
-    def enterElementValue(self, ctx:PalyLangParser.ElementValueContext):
-        pass
-
-    # Exit a parse tree produced by PalyLangParser#elementValue.
-    def exitElementValue(self, ctx:PalyLangParser.ElementValueContext):
-        pass
-
-
-    # Enter a parse tree produced by PalyLangParser#elementValueArrayInitializer.
-    def enterElementValueArrayInitializer(self, ctx:PalyLangParser.ElementValueArrayInitializerContext):
-        pass
-
-    # Exit a parse tree produced by PalyLangParser#elementValueArrayInitializer.
-    def exitElementValueArrayInitializer(self, ctx:PalyLangParser.ElementValueArrayInitializerContext):
-        pass
-
-
     # Enter a parse tree produced by PalyLangParser#variableDeclarator.
     def enterVariableDeclarator(self, ctx:PalyLangParser.VariableDeclaratorContext):
         pass
@@ -170,21 +152,57 @@ class PalyLangParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by PalyLangParser#variableInitializer.
-    def enterVariableInitializer(self, ctx:PalyLangParser.VariableInitializerContext):
+    # Enter a parse tree produced by PalyLangParser#DirectBlockInitializer.
+    def enterDirectBlockInitializer(self, ctx:PalyLangParser.DirectBlockInitializerContext):
         pass
 
-    # Exit a parse tree produced by PalyLangParser#variableInitializer.
-    def exitVariableInitializer(self, ctx:PalyLangParser.VariableInitializerContext):
+    # Exit a parse tree produced by PalyLangParser#DirectBlockInitializer.
+    def exitDirectBlockInitializer(self, ctx:PalyLangParser.DirectBlockInitializerContext):
         pass
 
 
-    # Enter a parse tree produced by PalyLangParser#arrayInitializer.
-    def enterArrayInitializer(self, ctx:PalyLangParser.ArrayInitializerContext):
+    # Enter a parse tree produced by PalyLangParser#ExpressionInitializer.
+    def enterExpressionInitializer(self, ctx:PalyLangParser.ExpressionInitializerContext):
         pass
 
-    # Exit a parse tree produced by PalyLangParser#arrayInitializer.
-    def exitArrayInitializer(self, ctx:PalyLangParser.ArrayInitializerContext):
+    # Exit a parse tree produced by PalyLangParser#ExpressionInitializer.
+    def exitExpressionInitializer(self, ctx:PalyLangParser.ExpressionInitializerContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#blockInitializer.
+    def enterBlockInitializer(self, ctx:PalyLangParser.BlockInitializerContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#blockInitializer.
+    def exitBlockInitializer(self, ctx:PalyLangParser.BlockInitializerContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#initializerList.
+    def enterInitializerList(self, ctx:PalyLangParser.InitializerListContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#initializerList.
+    def exitInitializerList(self, ctx:PalyLangParser.InitializerListContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#designation.
+    def enterDesignation(self, ctx:PalyLangParser.DesignationContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#designation.
+    def exitDesignation(self, ctx:PalyLangParser.DesignationContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#designator.
+    def enterDesignator(self, ctx:PalyLangParser.DesignatorContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#designator.
+    def exitDesignator(self, ctx:PalyLangParser.DesignatorContext):
         pass
 
 
@@ -224,12 +242,84 @@ class PalyLangParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by PalyLangParser#statement.
-    def enterStatement(self, ctx:PalyLangParser.StatementContext):
+    # Enter a parse tree produced by PalyLangParser#BlockStatement.
+    def enterBlockStatement(self, ctx:PalyLangParser.BlockStatementContext):
         pass
 
-    # Exit a parse tree produced by PalyLangParser#statement.
-    def exitStatement(self, ctx:PalyLangParser.StatementContext):
+    # Exit a parse tree produced by PalyLangParser#BlockStatement.
+    def exitBlockStatement(self, ctx:PalyLangParser.BlockStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#IfStatement.
+    def enterIfStatement(self, ctx:PalyLangParser.IfStatementContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#IfStatement.
+    def exitIfStatement(self, ctx:PalyLangParser.IfStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#ForLoop.
+    def enterForLoop(self, ctx:PalyLangParser.ForLoopContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#ForLoop.
+    def exitForLoop(self, ctx:PalyLangParser.ForLoopContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#WhileLoop.
+    def enterWhileLoop(self, ctx:PalyLangParser.WhileLoopContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#WhileLoop.
+    def exitWhileLoop(self, ctx:PalyLangParser.WhileLoopContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#DoWhileLoop.
+    def enterDoWhileLoop(self, ctx:PalyLangParser.DoWhileLoopContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#DoWhileLoop.
+    def exitDoWhileLoop(self, ctx:PalyLangParser.DoWhileLoopContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#ReturnStatement.
+    def enterReturnStatement(self, ctx:PalyLangParser.ReturnStatementContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#ReturnStatement.
+    def exitReturnStatement(self, ctx:PalyLangParser.ReturnStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#BreakStatement.
+    def enterBreakStatement(self, ctx:PalyLangParser.BreakStatementContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#BreakStatement.
+    def exitBreakStatement(self, ctx:PalyLangParser.BreakStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#ContinueStatement.
+    def enterContinueStatement(self, ctx:PalyLangParser.ContinueStatementContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#ContinueStatement.
+    def exitContinueStatement(self, ctx:PalyLangParser.ContinueStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#ExpressionStatement.
+    def enterExpressionStatement(self, ctx:PalyLangParser.ExpressionStatementContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#ExpressionStatement.
+    def exitExpressionStatement(self, ctx:PalyLangParser.ExpressionStatementContext):
         pass
 
 
@@ -359,12 +449,39 @@ class PalyLangParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by PalyLangParser#primary.
-    def enterPrimary(self, ctx:PalyLangParser.PrimaryContext):
+    # Enter a parse tree produced by PalyLangParser#SubExpression.
+    def enterSubExpression(self, ctx:PalyLangParser.SubExpressionContext):
         pass
 
-    # Exit a parse tree produced by PalyLangParser#primary.
-    def exitPrimary(self, ctx:PalyLangParser.PrimaryContext):
+    # Exit a parse tree produced by PalyLangParser#SubExpression.
+    def exitSubExpression(self, ctx:PalyLangParser.SubExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#LiteralExpression.
+    def enterLiteralExpression(self, ctx:PalyLangParser.LiteralExpressionContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#LiteralExpression.
+    def exitLiteralExpression(self, ctx:PalyLangParser.LiteralExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#IdentifierExpression.
+    def enterIdentifierExpression(self, ctx:PalyLangParser.IdentifierExpressionContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#IdentifierExpression.
+    def exitIdentifierExpression(self, ctx:PalyLangParser.IdentifierExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by PalyLangParser#blockInitializerExpression.
+    def enterBlockInitializerExpression(self, ctx:PalyLangParser.BlockInitializerExpressionContext):
+        pass
+
+    # Exit a parse tree produced by PalyLangParser#blockInitializerExpression.
+    def exitBlockInitializerExpression(self, ctx:PalyLangParser.BlockInitializerExpressionContext):
         pass
 
 

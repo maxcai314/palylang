@@ -84,27 +84,29 @@ integerLiteral
     | BINARY_LITERAL
     ;
 
-// todo: idk if this is used
-elementValue
-    : expression
-    | elementValueArrayInitializer
-    ;
-
-elementValueArrayInitializer
-    : '{' (elementValue (',' elementValue)*)? ','? '}'
-    ;
-
 variableDeclarator
-    : variableDeclaratorId ('=' variableInitializer)?
+    : variableDeclaratorId ('=' initializer)?
     ;
 
-variableInitializer
-    : arrayInitializer
-    | expression
+initializer
+    : blockInitializer    #DirectBlockInitializer
+    | expression          #ExpressionInitializer
     ;
 
-arrayInitializer
-    : '{' (variableInitializer (',' variableInitializer)* ','?)? '}'
+blockInitializer
+    : '{' initializerList ','? '}'
+    ;
+
+initializerList
+    : designation? initializer (',' designation? initializer)*
+    ;
+
+designation
+    : designator '='
+    ;
+
+designator
+    : '.' identifier
     ;
 
 variableDeclaratorId : identifier;
@@ -124,15 +126,15 @@ variableDeclaration
     ;
 
 statement
-    : blockStatement = block
-    | IF '(' expression ')' statement (ELSE statement)?
-    | FOR '(' forControl ')' statement
-    | WHILE '(' expression ')' statement
-    | DO statement WHILE '(' expression ')' ';'
-    | RETURN expression? ';'
-    | BREAK ';'
-    | CONTINUE ';'
-    | statementExpression = expression ';'
+    : blockStatement = block                               #BlockStatement
+    | IF '(' expression ')' statement (ELSE statement)?    #IfStatement
+    | FOR '(' forControl ')' statement                     #ForLoop
+    | WHILE '(' expression ')' statement                   #WhileLoop
+    | DO statement WHILE '(' expression ')' ';'            #DoWhileLoop
+    | RETURN expression? ';'                               #ReturnStatement
+    | BREAK ';'                                            #BreakStatement
+    | CONTINUE ';'                                         #ContinueStatement
+    | statementExpression = expression ';'                 #ExpressionStatement
     ;
 
 forControl
@@ -213,9 +215,10 @@ expression
     ;
 
 primary
-    : '(' expression ')'
-    | literal
-    | identifier
+    : '(' expression ')'                    #SubExpression
+    | literal                               #LiteralExpression
+    | identifier                            #IdentifierExpression
+    | '(' typeType ')' blockInitializer     #blockInitializerExpression
     ;
 
 typeType

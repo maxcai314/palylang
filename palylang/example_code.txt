@@ -19,8 +19,6 @@ void println(@char line) {
     putchar('\n');
 }
 
-// commented out code
-/*
 void print_hello_world() {
     @char hello = "hello";
     @char world = "world";
@@ -36,11 +34,11 @@ struct IntNode {
     @IntNode next;
 }
 
-int linkedLength(@IntNode n) {
+int linkedLengthRecursive(@IntNode n) {
     return linkedLength0(n, 0);
 }
 
-int linkedLength0(@IntNode n, int i) {
+int linkedLengthRecursive0(@IntNode n, int i) {
     if (n.next == null) {
         return i;
     } else {
@@ -61,4 +59,17 @@ int linkedLength(@IntNode n) {
     }
     return result;
 }
-*/
+
+void main() {
+    println("Hello World!");
+    IntNode tail = { .data = 1, .next = null };
+    IntNode mid = { 6, @tail };
+    IntNode head = (IntNode) { 7, @mid };
+    int len = linkedLength(head);
+    if (len == 3) {
+        println("Yay");
+    } else {
+        println("Nay");
+    }
+    println("Done");
+}
