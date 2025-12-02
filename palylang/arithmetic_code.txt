@@ -22,6 +22,10 @@ int funny(int a, int b) {
 }
 
 int sillySquare(int n) {
+    if (n < 0) {
+        n = -n;
+    }
+
     int total = 0;
     for (int i=0; i<n; i++) {
         total += n;
