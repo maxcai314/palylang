@@ -90,6 +90,20 @@ class PhiAssignmentStatement(Statement):
         operand_names = ', '.join(op.name for op in self.operands)
         return f"{self.result.name} = phi({operand_names})"
 
+class FunctionCallStatement(Statement):
+    """
+    Represents a function call statement in the IR.
+    Example: x = call func(a, b)
+    """
+    def __init__(self, result: IRVariable, function_name: str, arguments: list[Union[IRVariable, IRLiteral]]):
+        self.result = result
+        self.function_name = function_name
+        self.arguments = arguments
+
+    def __str__(self) -> str:
+        arg_names = ', '.join(arg.name for arg in self.arguments)
+        return f"{self.result.name} = call {self.function_name}({arg_names})"
+
 # todo: load/store statements not implemented
 # for now, let's compile a side-effect free subset of palylang
 
@@ -113,6 +127,8 @@ class BasicBlock:
         self.label = label
         self.statements: list[Statement] = []
         self.terminator: Union[Terminator, None] = None
+        self.predecessors: set['BasicBlock'] = set()
+        self.successors: set['BasicBlock'] = set()
 
     def __str__(self) -> str:
         statements_str = '\n  '.join(str(stmt) for stmt in self.statements)
@@ -156,3 +172,21 @@ class ReturnTerminator(Terminator):
 
     def __str__(self) -> str:
         return f"return {self.return_var.name}"
+
+
+class IRFunction:
+    """
+    Represents a function in the IR.
+    Contains a list of basic blocks.
+    """
+    def __init__(self, name: str, return_type: IRType, parameters: list[IRVariable]):
+        self.name = name
+        self.return_type = return_type
+        self.parameters = parameters
+        self.basic_blocks: list[BasicBlock] = []
+
+    def __str__(self) -> str:
+        params_str = ', '.join(f"{param.type.name} {param.name}" for param in self.parameters)
+        blocks_str = '\n'.join(str(bb) for bb in self.basic_blocks)
+        return f"function {self.name}({params_str}) -> {self.return_type.name} {{\n{blocks_str}\n}}"
+

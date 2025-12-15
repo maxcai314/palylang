@@ -8,9 +8,9 @@ Build the ANTLR parser:
 
 Test it on some code:
 ```
-python3 palylang/parse/Driver.py palylang/example_code.txt --dot palylang/example_parse_tree.dot
+python3 palylang/parse/Driver.py palylang/arithmetic_code.txt --dot palylang/arithmetic_code.dot
 ```
 Render the dot file
 ```
-dot -Tpng palylang/example_parse_tree.dot -o palylang/example_parse_tree.png
+dot -Tpng palylang/arithmetic_code.dot -o palylang/arithmetic_parse_tree.png
 ```
