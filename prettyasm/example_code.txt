@@ -1,0 +1,46 @@
+// pretty assembly section
+.prettyasm
+
+procedure print_stuff:
+  addi a0, zero, 67   // lol six seven
+  addi a1, zero, 94
+@loop:
+  printc a0           // print the char
+  addi a0, a0, 1      // increment a0
+  blt a0, a1, @loop   // loop if a0 < a1
+  jalr zero, ra       // otherwise, return
+endprocedure;
+
+procedure print_str:      // prints the C-string at *a0
+  addi    a2, a0, 0       // preserve a0
+@start:
+  lbu     a1, 0(a0)       // read byte
+  beq     a1, zero, @end  // break if zero (null termination)
+  printc  a1              // print char
+  addi    a0, a0, 1       // increment
+  jal     zero, @start    // jump to loop start
+@end:
+  addi    a0, a2, 0       // restore a0
+  jalr    zero, ra        // return
+endprocedure;
+
+
+// raw assembly section
+.text
+
+main:
+  addi sp, sp, -16 // push 16 bytes of stack space
+  sw 8(sp), ra // store the return address
+  jal ra, print_stuff // function call
+  la a0, my_string
+  jal ra, print_str // function call
+  addi sp, sp, 16   // restore stack
+  jalr zero, ra     // return
+
+
+// data section
+.data
+
+// declare a C-string
+my_string:
+  .string "we//sh\n" // lol
