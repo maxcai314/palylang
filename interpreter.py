@@ -28,7 +28,7 @@ def trunc_divmod(a, b):
     return (q, r)
 
 # The VM has only these general-purpose registers
-REGISTERS = [ "zero", "sp", "a0", "a1", "a2", "a3" ]
+REGISTERS = [ "zero", "sp", "ra", "a0", "a1", "a2", "a3" ]
 
 class RegisterFile:
     def __init__(self):
