@@ -1,5 +1,5 @@
 // this is a code section
-.text
+section .text
 
 // my function
 my_funct:
@@ -218,7 +218,7 @@ print_str:
 
 
 // this is a data section
-.data
+section .data
 
 // declare word[2] some_data { 0xA, 0xBBBB }
 some_data:

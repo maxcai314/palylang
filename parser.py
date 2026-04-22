@@ -32,10 +32,10 @@ class Parser:
         self.mode = None  # should be either "code" or "data"
 
     def parse_line(self, line):
-        if line == ".text":
+        if line == "section .text":
             self.mode = "code"
             return
-        elif line == ".data":
+        elif line == "section .data":
             self.mode = "data"
             return
 

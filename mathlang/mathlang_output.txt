@@ -1,6 +1,6 @@
 // library functions used for the mathlang
 
-.text
+section .text
 
 // prints the number stored in a0
 print_num:
@@ -135,7 +135,7 @@ print_state:
   jalr    zero, ra
 
 
-.data
+section .data
 a_prefix:
   .string   "Value in a: "
 b_prefix:
@@ -147,7 +147,7 @@ c_ending:
 
 
 // BEGIN USER CODE
-.text
+section .text
 main:
   // prologue
   addi sp, sp, -16

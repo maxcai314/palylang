@@ -84,7 +84,7 @@ class Compiler:
         
         # translate each parsed statement into assembly
         output.append("\n\n// BEGIN USER CODE")
-        output.append(".text")
+        output.append("section .text")
 
         # boilerplate
         output.append("main:")

@@ -1,5 +1,5 @@
 // pretty assembly section
-.prettyasm
+section .prettyasm
 
 procedure print_stuff:
   addi a0, zero, 67   // lol six seven
@@ -39,7 +39,7 @@ main:
 
 
 // data section
-.data
+section .data
 
 // declare a C-string
 my_string:
