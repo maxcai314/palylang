@@ -1,6 +1,6 @@
 # lol
 
-from lexer import LexedSections, SectionFileLexer
+from lexer import LexedFile, SectionFileLexer
 
 MASK_32 = 0xFFFFFFFF
 MASK_16 = 0xFFFF
@@ -145,12 +145,10 @@ class Parser:
 
         raise ValueError(f"Unknown data directive in .data section: {kword}")
 
-    def parse_lexed_sections(self, lexed_sections: LexedSections):
+    def parse_lexed_file(self, lexed_file: LexedFile):
         parsed_known_section = False
 
-        for section_name in lexed_sections.section_order:
-            section_lines = lexed_sections.get_section(section_name)
-
+        for section_name, section_lines in lexed_file.sections.items():
             if section_name == ".text":
                 parsed_known_section = True
                 for line in section_lines:
@@ -173,15 +171,9 @@ class Parser:
         self.code_labels.extend([] for i in range(len(self.code) - len(self.code_labels)))
 
 
-def parse_lines(lines):
-    file_lexer = SectionFileLexer()
-    lexed_file = file_lexer.lex_lines(lines)
-    return parse_lexed_sections(lexed_file)
-
-
-def parse_lexed_sections(lexed_sections: LexedSections):
+def parse_lexed_file(lexed_file: LexedFile):
     parser = Parser()
-    parser.parse_lexed_sections(lexed_sections)
+    parser.parse_lexed_file(lexed_file)
     return parser
 
 def print_asm(asm, comment=None, line_num=None, comment_col=32, line_num_col=4):
@@ -212,7 +204,7 @@ def dump_asm(parser):
 def parse_file(filename):
     file_lexer = SectionFileLexer()
     lexed_file = file_lexer.lex_file(filename)
-    return parse_lexed_sections(lexed_file)
+    return parse_lexed_file(lexed_file)
 
 if __name__ == "__main__":
     import sys

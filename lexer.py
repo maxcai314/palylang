@@ -27,9 +27,8 @@ def trim_line(line: str, comment_prefix: str = "//") -> str:
 
 
 @dataclass
-class LexedSections:
+class LexedFile:
 	sections: Dict[str, List[str]]
-	section_order: List[str]
 
 	def get_section(self, section_name: str) -> List[str]:
 		return self.sections.get(section_name, [])
@@ -54,9 +53,8 @@ class SectionFileLexer:
 
 		return section_name
 
-	def lex_lines(self, lines: Iterable[str]) -> LexedSections:
+	def lex_lines(self, lines: Iterable[str]) -> LexedFile:
 		sections: Dict[str, List[str]] = {}
-		section_order: List[str] = []
 		active_section: Optional[str] = None
 
 		for line_num, raw_line in enumerate(lines, start=1):
@@ -69,7 +67,6 @@ class SectionFileLexer:
 				active_section = section_name
 				if section_name not in sections:
 					sections[section_name] = []
-					section_order.append(section_name)
 				continue
 
 			if active_section is None:
@@ -79,8 +76,8 @@ class SectionFileLexer:
 
 			sections[active_section].append(line)
 
-		return LexedSections(sections=sections, section_order=section_order)
+		return LexedFile(sections=sections)
 
-	def lex_file(self, filename: str) -> LexedSections:
+	def lex_file(self, filename: str) -> LexedFile:
 		with open(filename, "r") as file:
 			return self.lex_lines(file.readlines())
