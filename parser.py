@@ -1,26 +1,13 @@
 # lol
 
+from lexer import LexedSections, SectionFileLexer
+
 MASK_32 = 0xFFFFFFFF
 MASK_16 = 0xFFFF
 MASK_8 = 0xFF
 WORD_SIZE = 4  # 4 bytes for a 32-bit word
 HALF_SIZE = 2  # 2 bytes for a 16-bit half
 BYTE_SIZE = 1  # 1 byte
-
-def trim_line(line):
-    # there are strings, so we need to be careful about comments
-    in_string = False
-    escaped = False
-    for i, char in enumerate(line):
-        if char == '"' and not escaped:
-            in_string = not in_string
-        if char == '\\' and not escaped:
-            escaped = True
-        else:
-            escaped = False
-        if not in_string and char == '/' and i + 1 < len(line) and line[i + 1] == '/':
-            return line[:i].strip()
-    return line.strip()
 
 
 class Parser:
@@ -29,33 +16,41 @@ class Parser:
         self.code_labels = []
         self.data = []  # bytes
         self.data_labels = []
-        self.mode = None  # should be either "code" or "data"
 
-    def parse_line(self, line):
-        if line == "section .text":
-            self.mode = "code"
-            return
-        elif line == "section .data":
-            self.mode = "data"
-            return
+    def _add_code_label(self, label_name):
+        label_idx = len(self.code)
+        self.code_labels.extend([] for i in range(label_idx - len(self.code_labels) + 1))
+        self.code_labels[label_idx].append(label_name)
 
+    def _add_data_label(self, label_name):
+        label_idx = len(self.data)
+        self.data_labels.extend([] for i in range(label_idx - len(self.data_labels) + 1))
+        self.data_labels[label_idx].append(label_name)
+
+    def parse_code_line(self, line):
         kword, *remaining = line.split(" ", 1)
         remaining_text = remaining[0] if remaining else ""
 
         if kword.endswith(":"):
-            # this line is a label
-            label_name = kword[:-1]
-            label_list = self.data_labels if self.mode == "data" else self.code_labels
-            label_idx = len(self.data if self.mode == "data" else self.code)
-            label_list.extend([] for i in range(label_idx - len(label_list) + 1))  # extend to fit
-            label_list[label_idx].append(label_name)  # add the label to this line
+            self._add_code_label(kword[:-1])
+            return
+
+        if kword in (".word", ".half", ".byte", ".zero", ".string", ".align"):
+            raise ValueError("Data directives are not allowed in a .text section")
+
+        args = [i.strip() for i in remaining_text.split(",")]
+        args = [i for i in args if len(i) > 0]
+        self.code.append((kword, args))
+
+    def parse_data_line(self, line):
+        kword, *remaining = line.split(" ", 1)
+        remaining_text = remaining[0] if remaining else ""
+
+        if kword.endswith(":"):
+            self._add_data_label(kword[:-1])
             return
 
         if kword == ".word":
-            # add some data
-            if not self.mode == "data":
-                raise ValueError("Can only declare data in a .data section")
-
             words = [i.strip() for i in remaining_text.split(",")]
             words = [i for i in words if len(i) > 0]
             if not words:
@@ -70,12 +65,8 @@ class Parser:
                 self.data.append((literal_num >> 24) & MASK_8)
 
             return
-        
-        if kword == ".half":
-            # add some halfword data
-            if not self.mode == "data":
-                raise ValueError("Can only declare data in a .data section")
 
+        if kword == ".half":
             halves = [i.strip() for i in remaining_text.split(",")]
             halves = [i for i in halves if len(i) > 0]
             if not halves:
@@ -88,12 +79,8 @@ class Parser:
                 self.data.append((literal_num >> 8) & MASK_8)
 
             return
-        
-        if kword == ".byte":
-            # add some byte data
-            if not self.mode == "data":
-                raise ValueError("Can only declare data in a .data section")
 
+        if kword == ".byte":
             bytes_list = [i.strip() for i in remaining_text.split(",")]
             bytes_list = [i for i in bytes_list if len(i) > 0]
             if not bytes_list:
@@ -104,21 +91,14 @@ class Parser:
                 self.data.append(literal_num)
 
             return
-        
+
         if kword == ".zero":
-            # add some zeroed bytes
-            if not self.mode == "data":
-                raise ValueError("Can only declare data in a .data section")
             num_zeros = int(remaining_text.strip(), 0)
             for _ in range(num_zeros):
                 self.data.append(0)
             return
-        
+
         if kword == ".string":
-            # add a string as byte data in C-string format
-            if not self.mode == "data":
-                raise ValueError("Can only declare data in a .data section")
-            
             remaining_text = remaining_text.strip()
 
             if not (remaining_text.startswith('"') and remaining_text.endswith('"')):
@@ -153,11 +133,9 @@ class Parser:
             self.data.append(0)  # null-terminate the string
 
             return
-        
+
         if kword == ".align":
-            # align the data/code to a word boundary
-            if not self.mode == "data":  # only usable in data section for now
-                raise ValueError("Can only align data in a .data section")
+            # align the data to a boundary in bytes
             align_to = int(remaining_text.strip(), 0)
             current_len = len(self.data)
             padding_needed = (align_to - (current_len % align_to)) % align_to
@@ -165,27 +143,45 @@ class Parser:
                 self.data.append(0)
             return
 
-        # otherwise, must be an asm insn
-        if not self.mode == "code":
-            raise ValueError("Can only declare insns in a .text section")
+        raise ValueError(f"Unknown data directive in .data section: {kword}")
 
-        args = [i.strip() for i in remaining_text.split(",")]
-        args = [i for i in args if len(i) > 0]
-        self.code.append((kword, args))
+    def parse_lexed_sections(self, lexed_sections: LexedSections):
+        parsed_known_section = False
+
+        for section_name in lexed_sections.section_order:
+            section_lines = lexed_sections.get_section(section_name)
+
+            if section_name == ".text":
+                parsed_known_section = True
+                for line in section_lines:
+                    self.parse_code_line(line)
+            elif section_name == ".data":
+                parsed_known_section = True
+                for line in section_lines:
+                    self.parse_data_line(line)
+            else:
+                print(f"Warning: Ignoring unknown section {section_name}")
+
+        if not parsed_known_section:
+            raise ValueError("ASM file must contain at least one known section (.text or .data)")
+
+        self.pad_label_list()
 
     def pad_label_list(self):
         # fills the label list with empty values
-        for mode in ("data", "code"):
-            label_list = self.data_labels if mode == "data" else self.code_labels
-            label_idx = len(self.data if mode == "data" else self.code)
-            label_list.extend([] for i in range(label_idx - len(label_list)))
+        self.data_labels.extend([] for i in range(len(self.data) - len(self.data_labels)))
+        self.code_labels.extend([] for i in range(len(self.code) - len(self.code_labels)))
 
 
 def parse_lines(lines):
+    file_lexer = SectionFileLexer()
+    lexed_file = file_lexer.lex_lines(lines)
+    return parse_lexed_sections(lexed_file)
+
+
+def parse_lexed_sections(lexed_sections: LexedSections):
     parser = Parser()
-    for line in lines:
-        parser.parse_line(line)
-    parser.pad_label_list()
+    parser.parse_lexed_sections(lexed_sections)
     return parser
 
 def print_asm(asm, comment=None, line_num=None, comment_col=32, line_num_col=4):
@@ -214,14 +210,9 @@ def dump_asm(parser):
         print_asm(f"    {hex(data_word)}", line_num=data_start_addr + i)
 
 def parse_file(filename):
-    with open(filename, "r") as file:
-        lines = file.readlines()
-
-    # remove comments and whitespaces
-    lines = [trim_line(line) for line in lines]
-    lines = [line for line in lines if len(line) > 0]
-
-    return parse_lines(lines)
+    file_lexer = SectionFileLexer()
+    lexed_file = file_lexer.lex_file(filename)
+    return parse_lexed_sections(lexed_file)
 
 if __name__ == "__main__":
     import sys
