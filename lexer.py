@@ -2,6 +2,10 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional
 
 
+# TODO: this forces the language to use this system for comments, which is inflexible.
+# However, we want to agree on a syntax for comments regardless of the section we're in,
+# so we use any // (that is not part of a string literal) as comments
+# not very easy to customize what counts as a comment, but it is consistent across sections and simple to implement.
 def trim_line(line: str, comment_prefix: str = "//") -> str:
 	# Handle comment markers inside quoted strings.
 	in_string = False
