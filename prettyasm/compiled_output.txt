@@ -10,7 +10,7 @@ print_stuff:  // procedure start
   addi a0, a0, 1
   blt a0, a1, 0b
   jalr zero, ra
-  // end procedure print_stuff
+// end procedure print_stuff
 
 print_str:  // procedure start
   addi a2, a0, 0
@@ -23,7 +23,7 @@ print_str:  // procedure start
 1:  // local label @end
   addi a0, a2, 0
   jalr zero, ra
-  // end procedure print_str
+// end procedure print_str
 
 // end of compiled .prettyasm text section
 

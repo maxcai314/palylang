@@ -108,7 +108,7 @@ class Parser:
                     raise ValueError(f"Procedure {procedure_name} not properly terminated with endprocedure")
                 
                 output_lines.extend(self._substitute_labels())
-                output_lines.append(f"  // end procedure {procedure_name}")
+                output_lines.append(f"// end procedure {procedure_name}")
                 output_lines.append("")  # add blank line after each procedure
             else:
                 raise ValueError(f"Unknown line format in .prettyasm section: {line}")
