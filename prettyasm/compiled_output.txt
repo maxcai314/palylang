@@ -1,0 +1,47 @@
+// Compiled from prettyasm/example_code.txt using prettyasm parser
+
+section .text // compiled from .prettyasm
+
+print_stuff:  // procedure start
+  addi a0, zero, 67
+  addi a1, zero, 94
+0:  // local label @loop
+  printc a0
+  addi a0, a0, 1
+  blt a0, a1, 0b
+  jalr zero, ra
+  // end procedure print_stuff
+
+print_str:  // procedure start
+  addi a2, a0, 0
+0:  // local label @start
+  lbu a1, 0(a0)
+  beq a1, zero, 1f
+  printc a1
+  addi a0, a0, 1
+  jal zero, 0b
+1:  // local label @end
+  addi a0, a2, 0
+  jalr zero, ra
+  // end procedure print_str
+
+// end of compiled .prettyasm text section
+
+section .text // copied from original file
+
+main:
+addi sp, sp, -16
+sw 8(sp), ra
+jal ra, print_stuff
+la a0, my_string
+jal ra, print_str
+lw ra, 8(sp)
+addi sp, sp, 16
+jalr zero, ra
+// end of copied .text section
+
+section .data // copied from original file
+
+my_string:
+.string "we//sh\n"
+// end of copied .data section

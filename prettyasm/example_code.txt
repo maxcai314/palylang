@@ -34,6 +34,7 @@ main:
   jal ra, print_stuff // function call
   la a0, my_string
   jal ra, print_str // function call
+  lw ra, 8(sp) // load the return address
   addi sp, sp, 16   // restore stack
   jalr zero, ra     // return
 
