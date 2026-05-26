@@ -108,8 +108,12 @@ class VM:
         data_labels = {}
         # Load data segment
         for i, byte in enumerate(parse_result.data):
-            self.store_byte(data_start + i, byte)
-        
+            # if store fails, raise and error and print the line number in the original source code
+            try:
+                self.store_byte(data_start + i, byte)
+            except Exception as e:
+                raise RuntimeError(f"Error storing at byte {i + 1}: {e}")
+
         for label_idx, labels in enumerate(parse_result.data_labels):
             for label in labels:
                 data_labels[label] = data_start + label_idx
@@ -409,7 +413,7 @@ if __name__ == "__main__":
     filename = sys.argv[1]
     asm_parser = parser.parse_file(filename)
 
-    vm = VM(mem_size=1024)
+    vm = VM(mem_size=1024 + len(asm_parser.data))  # allocate enough memory for data segment
     vm.load_program(asm_parser)
 
     target_function = sys.argv[2] if len(sys.argv) > 2 else "main"

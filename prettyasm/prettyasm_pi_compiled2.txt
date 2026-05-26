@@ -43,6 +43,20 @@ print_str:  // procedure start
   jalr zero, ra
 // end procedure print_str
 
+init_array:  // procedure start
+  la a0, r_arr
+  addi a1, a0, 11200
+  addi a2, zero, 2000
+0:  // local label @start
+  beq a0, a1, 1f
+  sw 0(a0), a2
+  addi a0, a0, 4
+  jal zero, 0b
+1:  // local label @end
+  sw 0(a0), zero
+  jalr zero, ra
+// end procedure init_array
+
 // end of compiled .prettyasm text section
 
 section .text // copied from original file
@@ -54,6 +68,9 @@ la a0, my_string
 jal ra, print_str
 addi a0, zero, 12345
 jal ra, print_four_digit
+jal ra, init_array
+la a1, r_arr
+lw a0, 11200(a1)
 jal ra, print_four_digit
 lw ra, 8(sp)
 addi sp, sp, 16
@@ -62,6 +79,8 @@ jalr zero, ra
 
 section .data // copied from original file
 
+r_arr:
+.zero 11204
 my_string:
 .string "we//sh\n"
 // end of copied .data section

@@ -44,6 +44,19 @@ procedure print_str:      // prints the C-string at *a0
   jalr    zero, ra        // return
 endprocedure;
 
+procedure init_array:
+  la a0, r_arr            // a0 is pointer
+  addi a1, a0, 11200      // a1 is end
+  addi a2, zero, 2000     // val is 2000
+@start:
+  beq a0, a1, @end        // if ptr is 
+  sw 0(a0), a2
+  addi a0, a0, 4
+  jal zero, @start
+@end:
+  sw 0(a0), zero
+  jalr zero, ra
+endprocedure;
 
 // raw assembly section
 section .text
@@ -57,13 +70,22 @@ main:
   addi a0, zero, 12345
   jal ra, print_four_digit
 
+  jal ra, init_array
+  la a1, r_arr
+  lw a0, 0(a1)
+  jal ra, print_four_digit
+
   lw ra, 8(sp) // load the return address
   addi sp, sp, 16   // restore stack
   jalr zero, ra     // return
 
 
-// data section
+// this is a data section
 section .data
+
+// declare an array of zeros
+r_arr:
+  .zero 11204
 
 // declare a C-string
 my_string:
