@@ -57,6 +57,71 @@ init_array:  // procedure start
   jalr zero, ra
 // end procedure init_array
 
+print_pi:  // procedure start
+  addi sp, sp, -32
+  sw 20(sp), ra
+  sw 12(sp), zero
+  addi a0, zero, 2800
+  sw 4(sp), a0
+  jal ra, init_array
+0:  // local label @start_outer
+  lw a0, 4(sp)
+  beq a0, zero, 3f
+  addi a1, zero, 0
+  addi a2, a0, 0
+  sw 16(sp), a1
+  sw 0(sp), a2
+1:  // local label @start_inner
+  la a3, r_arr
+  lw a2, 0(sp)
+  add a3, a3, a2
+  add a3, a3, a2
+  add a3, a3, a2
+  add a3, a3, a2
+  lw a1, 0(a3)
+  addi a0, zero, 10000
+  mul a1, a0, a1
+  lw a0, 16(sp)
+  add a0, a0, a1
+  add a1, zero, a2
+  add a1, a1, a2
+  addi a1, a1, -1
+  sw 0(sp), a2
+  rem a2, a0, a1
+  sw 0(a3), a2
+  div a0, a0, a1
+  lw a2, 0(sp)
+  addi a2, a2, -1
+  sw 16(sp), a0
+  sw 0(sp), a2
+  sw 8(sp), a1
+  beq a2, zero, 2f
+  mul a0, a0, a2
+  sw 16(sp), a0
+  sw 0(sp), a2
+  sw 8(sp), a1
+  jal zero, 1b
+2:  // local label @end_inner
+  lw a0, 12(sp)
+  lw a1, 16(sp)
+  addi a2, zero, 10000
+  div a1, a1, a2
+  add a0, a0, a1
+  jal ra, print_four_digit
+  lw a1, 16(sp)
+  addi a2, zero, 10000
+  rem a0, a1, a2
+  sw 12(sp), a0
+  lw a0, 4(sp)
+  addi a0, a0, -14
+  sw 4(sp), a0
+  jal zero, 0b
+3:  // local label @end_outer
+  lw ra, 20(sp)
+  addi sp, sp, 32
+  jalr zero, ra
+// end procedure print_pi
+
 // end of compiled .prettyasm text section
 
 section .text // copied from original file
@@ -66,12 +131,7 @@ addi sp, sp, -16
 sw 8(sp), ra
 la a0, my_string
 jal ra, print_str
-addi a0, zero, 12345
-jal ra, print_four_digit
-jal ra, init_array
-la a1, r_arr
-lw a0, 11200(a1)
-jal ra, print_four_digit
+jal ra, print_pi
 lw ra, 8(sp)
 addi sp, sp, 16
 jalr zero, ra

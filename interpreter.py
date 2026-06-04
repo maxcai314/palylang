@@ -51,7 +51,7 @@ class VM:
         self.label_locator = None  # function to locate labels
 
     def print_char(self, data):
-        print(chr(data & MASK_8), end='')
+        print(chr(data & MASK_8), end='', flush=True)
 
     def load_word(self, address):
         if address % 4 != 0:

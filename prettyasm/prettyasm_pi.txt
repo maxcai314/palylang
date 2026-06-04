@@ -58,6 +58,92 @@ procedure init_array:
   jalr zero, ra
 endprocedure;
 
+// i: 0(sp), k: 4(sp), b: 8(sp), c: 12(sp), d: 16(sp), ra: 20(sp)
+// meow meow uwu nya nyaa mrrrow :3
+procedure print_pi:
+  addi sp, sp, -32          // give stack space 
+  sw 20(sp), ra
+  sw 12(sp), zero
+  addi a0, zero, 2800
+  sw 4(sp), a0
+  jal ra, init_array
+@start_outer:
+  lw a0, 4(sp)
+  beq a0, zero, @end_outer  // k in a0
+
+  addi a1, zero, 0          // d in a1 = 0
+  addi a2, a0, 0            // i in a2 = k
+
+  sw 16(sp), a1
+  sw 0(sp), a2
+@start_inner:
+  la a3, r_arr              // load r_arr in a3
+  lw a2, 0(sp)              // load i in a2
+  add a3, a3, a2
+  add a3, a3, a2
+  add a3, a3, a2
+  add a3, a3, a2            // get to r[i] pointer in a3
+
+  lw a1, 0(a3)              // load r[i] in a1
+  addi a0, zero, 10000
+  mul a1, a0, a1            // rhs in a1
+  lw a0, 16(sp)
+  add a0, a0, a1            // d stored in a0
+  // b = 2 * i - 1
+  add a1, zero, a2
+  add a1, a1, a2
+  addi a1, a1, -1           // b stored in a1
+
+  // r[i] = d % b;
+  sw 0(sp), a2              // spill i back to stack; a2 is free
+  rem a2, a0, a1
+  sw 0(a3), a2
+  // d /= b;
+  div a0, a0, a1
+  // i--;
+  lw a2, 0(sp)
+  addi a2, a2, -1
+
+  sw 16(sp), a0
+  sw 0(sp), a2
+  sw 8(sp), a1              // store stuff in case we break
+
+  beq a2, zero, @end_inner  // if (i == 0) break
+  // d *= i;
+  mul a0, a0, a2
+  // store stuff: d, i, b
+  sw 16(sp), a0
+  sw 0(sp), a2
+  sw 8(sp), a1
+  
+  jal zero, @start_inner
+@end_inner:
+  // printf("%.4d", c + d / 10000);
+  lw a0, 12(sp) // c
+  lw a1, 16(sp) // d
+  addi a2, zero, 10000
+  div a1, a1, a2
+  add a0, a0, a1
+  jal ra, print_four_digit
+
+	// c = d % 10000;
+  lw a1, 16(sp) // d
+  addi a2, zero, 10000
+  rem a0, a1, a2
+  sw 12(sp), a0
+
+  lw a0, 4(sp)
+  addi a0, a0, -14          // subtract 14
+  sw 4(sp), a0
+  jal zero, @start_outer    // go back to outer loop
+@end_outer:
+  lw ra, 20(sp)             // load the return address
+  addi sp, sp, 32           // restore stack
+  jalr zero, ra             // return
+endprocedure;
+  
+
+
 // raw assembly section
 section .text
 
@@ -67,13 +153,8 @@ main:
   la a0, my_string
   jal ra, print_str // function call
 
-  addi a0, zero, 12345
-  jal ra, print_four_digit
-
-  jal ra, init_array
-  la a1, r_arr
-  lw a0, 0(a1)
-  jal ra, print_four_digit
+  // jal ra, init_array
+  jal ra, print_pi
 
   lw ra, 8(sp) // load the return address
   addi sp, sp, 16   // restore stack
